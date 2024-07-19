@@ -36,5 +36,5 @@ urlpatterns = [
     #DTMS
     
     path('', views.dtms_dashboard, name='dtms_dashboard'),
-    path('create_trip/', views.create_trip, name='create_trip'),
+    path('create_trip/', views.create_trip, name='create_trip'), 
 ]
