@@ -22,3 +22,16 @@ class Trip(models.Model):
     
     def __str__(self):
         return f"({self.vehicle})   ({self.from_location})  ({self.driver})  ({self.co_driver})"
+    
+    
+class LoadTrip(models.Model):
+    trip = models.ForeignKey('Trip', on_delete=models.CASCADE)  # Assuming you have a Trip model
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='loadtrips')
+    pieces = models.PositiveIntegerField()
+    total_weight = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.trip} - {self.product} ({self.pieces} pieces)"
+
+    def __str__(self):
+        return f"{self.trip} - {self.product} ({self.pieces} pieces)"

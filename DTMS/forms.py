@@ -31,3 +31,16 @@ class TripForm(forms.ModelForm):
         self.fields['driver'].queryset = Driver.objects.filter(trip__isnull=True)
         self.fields['co_driver'].queryset = CoDriver.objects.filter(trip__isnull=True)
         self.fields['vehicle'].queryset = Vehicle.objects.filter(trip__isnull=True)
+        
+        
+class LoadTripForm(forms.ModelForm):
+    class Meta:
+        model = LoadTrip
+        fields = ['product', 'pieces', 'total_weight']
+        widgets = {
+            'total_weight': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product'].queryset = Product.objects.all()

@@ -37,4 +37,7 @@ urlpatterns = [
     
     path('', views.dtms_dashboard, name='dtms_dashboard'),
     path('create_trip/', views.create_trip, name='create_trip'), 
+    path('load_trip/', views.load_trip, name='load_trip'), 
+    path('trips/json/', views.trip_list_json, name='trip_list_json'),
+    path('products/json/', views.product_list_json, name='product_list_json')
 ]
