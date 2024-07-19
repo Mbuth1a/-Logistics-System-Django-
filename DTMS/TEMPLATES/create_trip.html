@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Trip</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .text-orange {
+            color: orange;
+        }
+        .text-grey {
+            color: grey;
+        }
+        .bg-orange {
+            background-color: orange;
+        }
+        .form-group {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100%;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #fff;
+            padding: 15px;
+            text-decoration: none;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #ff8c00;
+        }
+        .main-content {
+            margin-left: 220px;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #343a40;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background-color: #ff8c00;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
+    </div>
+    <div class="container">
+        <h2 class="text-center text-orange"><i class="fas fa-road"></i> Create Trip</h2>
+        <form id="createTripForm" method="post" action="{% url 'create_trip' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_date"><i class="fas fa-calendar-alt"></i> Date</label>
+                        {{ form.date }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_time"><i class="fas fa-clock"></i> Time</label>
+                        {{ form.time }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_day"><i class="fas fa-sun"></i> Day</label>
+                        <input type="text" class="form-control" id="id_day" name="day" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_description"><i class="fas fa-info-circle"></i> Description</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_driver"><i class="fas fa-user"></i> Driver</label>
+                        {{ form.driver }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_co_driver"><i class="fas fa-user-friends"></i> Co-Driver</label>
+                        {{ form.co_driver }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_vehicle"><i class="fas fa-truck"></i> Vehicle</label>
+                        {{ form.vehicle }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_from_location"><i class="fas fa-map-marker-alt"></i> From Location</label>
+                        {{ form.from_location }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_to_location"><i class="fas fa-map-marker-alt"></i> To Location</label>
+                        {{ form.to_location }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_est_distance"><i class="fas fa-ruler"></i> Estimated Distance</label>
+                        {{ form.est_distance }}
+                        <button type="button" class="btn btn-info mt-2" onclick="calculateDistance()"><i class="fas fa-calculator"></i> Calculate Distance</button>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block bg-orange mt-4"><i class="fas fa-paper-plane"></i> Submit</button>
+        </form>
+        <div id="distance" class="text-center mt-3 text-grey"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+    <script>
+        function calculateDistance() {
+            var origin = document.getElementById('id_from_location').value;
+            var destination = document.getElementById('id_to_location').value;
+            
+            var service = new google.maps.DistanceMatrixService();
+            service.getDistanceMatrix(
+                {
+                    origins: [origin],
+                    destinations: [destination],
+                    travelMode: 'DRIVING',
+                }, callback);
+
+            function callback(response, status) {
+                if (status == 'OK') {
+                    var distance = response.rows[0].elements[0].distance.text;
+                    document.getElementById('distance').innerText = distance;
+                }
+            }
+        }
+
+        // Function to move focus to the next input field on pressing Enter
+        function moveFocus(current, nextInputId) {
+            if (current.value.length === current.maxLength) {
+                document.getElementById(nextInputId).focus();
+            }
+        }
+
+        // Event listener to move focus to the next input field on Enter key press
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const focusableInputs = ['id_date', 'id_time', 'id_day', 'id_description', 'id_driver', 'id_co_driver', 'id_vehicle', 'id_from_location', 'id_to_location', 'id_est_distance'];
+                const currentInput = document.activeElement;
+                const currentIndex = focusableInputs.indexOf(currentInput.id);
+                if (currentIndex > -1 && currentIndex < focusableInputs.length - 1) {
+                    e.preventDefault();
+                    document.getElementById(focusableInputs[currentIndex + 1]).focus();
+                }
+            }
+        });
+
+        // Form submission validation
+        document.getElementById('createTripForm').addEventListener('submit', function(event) {
+            var fromLocation = document.getElementById('id_from_location').value.trim();
+            var toLocation = document.getElementById('id_to_location').value.trim();
+
+            // Additional validation checks can be added here
+            if (fromLocation === "" || toLocation === "") {
+                alert('Please fill in all required fields.');
+                event.preventDefault(); // Prevent form submission
+            }
+        });
+
+        // Function to set the current day in the day input field based on the date input
+        function setDayFromDate() {
+            var dateInput = document.getElementById('id_date').value;
+            if (dateInput) {
+                var date = new Date(dateInput);
+                var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                var day = days[date.getDay()];
+                document.getElementById('id_day').value = day;
+            } else {
+                document.getElementById('id_day').value = '';
+            }
+        }
+
+        // Add event listener to the date input field
+        document.getElementById('id_date').addEventListener('change', setDayFromDate);
+
+        // Set the current day on page load if date is pre-filled
+        window.onload = function() {
+            setDayFromDate();
+        };
+        function goToDashboard() {
+            window.location.href = "{% url 'dtms_dashboard' %}";
+        }
+    </script>
+</body>
+</html>

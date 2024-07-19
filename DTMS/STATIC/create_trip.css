@@ -1,0 +1,15 @@
+/* custom.css */
+.text-orange {
+    color: #ff6600;
+}
+
+.bg-orange {
+    background-color: #ff6600;
+    border-color: #ff6600;
+}
+
+.text-grey {
+    color: #666666;
+}
+
+/* Add additional custom styles as needed */

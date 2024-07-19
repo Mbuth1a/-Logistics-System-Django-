@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports - DANCO LTD Logistics System</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'reports.css' %}"> <!-- Include the new theme CSS file -->
+  <style>
+    @media print {
+      .no-print {
+        display: none;
+      }
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200px;
+      height: 100%;
+      background-color: #343a40;
+      padding-top: 20px;
+  }
+  .sidebar a {
+      color: #fff;
+      padding: 15px;
+      text-decoration: none;
+      display: block;
+  }
+  .sidebar a:hover {
+      background-color: #ff8c00;
+  }
+  .main-content {
+      margin-left: 220px;
+  }
+  .back-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #343a40;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+  }
+  .back-button:hover {
+      background-color: #ff8c00;
+  }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
+</div>
+  <div class="container mt-4">
+    <h1 class="text-center">
+        Reports
+        <i class="fas fa-file-alt ml-2"></i>
+      </h1>
+
+    <!-- Drivers Section -->
+    <div class="card">
+      <div class="card-header" id="driversHeading">
+        <h2 class="mb-0">
+            <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#driversCollapse" aria-expanded="true" aria-controls="driversCollapse">
+                DRIVERS
+                <i class="fas fa-users ml-1"></i>
+              </button>
+              
+          <div class="float-right no-print">
+            <button class="btn btn-primary mr-2 btn-print" onclick="printSection('driversCollapse')">
+              <i class="fas fa-print"></i> Print
+            </button>
+            <button class="btn btn-success btn-download" onclick="downloadCSV('drivers')">
+              <i class="fas fa-download"></i> Download CSV
+            </button>
+          </div>
+        </h2>
+      </div>
+      <div id="driversCollapse" class="collapse show" aria-labelledby="driversHeading">
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>License Number</th>
+                <th>Phone Number</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for driver in drivers %}
+              <tr>
+                <td>{{ driver.id }}</td>
+                <td>{{ driver.username }}</td>
+                <td>{{ driver.first_name }}</td>
+                <td>{{ driver.last_name }}</td>
+                <td>{{ driver.license_number }}</td>
+                <td>{{ driver.phone_number }}</td>
+                <td>{{ driver.email }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicles Section -->
+    <div class="card mt-3">
+      <div class="card-header" id="vehiclesHeading">
+        <h2 class="mb-0">
+            <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#vehiclesCollapse" aria-expanded="true" aria-controls="vehiclesCollapse">
+                VEHICLES
+                <i class="fas fa-truck ml-1"></i>
+              </button>
+              
+          <div class="float-right no-print">
+            <button class="btn btn-primary mr-2 btn-print" onclick="printSection('vehiclesCollapse')">
+              <i class="fas fa-print"></i> Print
+            </button>
+            <button class="btn btn-success btn-download" onclick="downloadCSV('vehicles')">
+              <i class="fas fa-download"></i> Download CSV
+            </button>
+          </div>
+        </h2>
+      </div>
+      <div id="vehiclesCollapse" class="collapse" aria-labelledby="vehiclesHeading">
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Vehicle Registration No.</th>
+                <th>Model</th>
+                <th>Vehicle Type</th>
+                <th>Engine Number</th>
+                <th>Capacity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for vehicle in vehicles %}
+              <tr>
+                <td>{{ vehicle.id }}</td>
+                <td>{{ vehicle.vehicle_regno }}</td>
+                <td>{{ vehicle.vehicle_model }}</td>
+                <td>{{ vehicle.vehicle_type }}</td>
+                <td>{{ vehicle.engine_number }}</td>
+                <td>{{ vehicle.capacity }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Co-Drivers Section -->
+    <div class="card mt-3">
+      <div class="card-header" id="coDriversHeading">
+        <h2 class="mb-0">
+            <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#coDriversCollapse" aria-expanded="true" aria-controls="coDriversCollapse">
+                CO-DRIVERS
+                <i class="fas fa-users ml-1"></i>
+              </button>
+              
+          <div class="float-right no-print">
+            <button class="btn btn-primary mr-2 btn-print" onclick="printSection('coDriversCollapse')">
+              <i class="fas fa-print"></i> Print
+            </button>
+            <button class="btn btn-success btn-download" onclick="downloadCSV('co_drivers')">
+              <i class="fas fa-download"></i> Download CSV
+            </button>
+          </div>
+        </h2>
+      </div>
+      <div id="coDriversCollapse" class="collapse" aria-labelledby="coDriversHeading">
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Employee Number</th>
+                <th>Name</th>
+                <th>Phone Number</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for co_driver in co_drivers %}
+              <tr>
+                <td>{{ forloop.counter }}</td> <!-- Use forloop.counter to start from 1 -->
+                <td>{{ co_driver.employee_number }}</td>
+                <td>{{ co_driver.co_driver_name }}</td>
+                <td>{{ co_driver.phone_number }}</td>
+                <td>{{ co_driver.email_address }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    function printSection(sectionId) {
+      var printContents = document.getElementById(sectionId).innerHTML;
+      var originalContents = document.body.innerHTML;
+      document.body.innerHTML = printContents;
+      window.print();
+      document.body.innerHTML = originalContents;
+    }
+
+    function downloadCSV(section) {
+      var csv = '';
+      var fileName = '';
+      if (section === 'drivers') {
+        csv = 'ID,Username,First Name,Last Name,License Number,Phone Number,Email\n';
+        {% for driver in drivers %}
+        csv += '{{ driver.id }},{{ driver.username }},{{ driver.first_name }},{{ driver.last_name }},{{ driver.license_number }},{{ driver.phone_number }},{{ driver.email }}\n';
+        {% endfor %}
+        fileName = 'drivers.csv';
+      } else if (section === 'vehicles') {
+        csv = 'ID,Vehicle Registration No.,Model,Vehicle Type,Engine Number,Capacity\n';
+        {% for vehicle in vehicles %}
+        csv += '{{ vehicle.id }},{{ vehicle.vehicle_regno }},{{ vehicle.vehicle_model }},{{ vehicle.vehicle_type }},{{ vehicle.engine_number }},{{ vehicle.capacity }}\n';
+        {% endfor %}
+        fileName = 'vehicles.csv';
+      } else if (section === 'co_drivers') {
+        csv = 'ID,Employee Number,Name,Phone Number,Email\n';
+        {% for co_driver in co_drivers %}
+        csv += '{{ forloop.counter }},{{ co_driver.employee_number }},{{ co_driver.co_driver_name }},{{ co_driver.phone_number }},{{ co_driver.email_address }}\n';
+        {% endfor %}
+        fileName = 'co_drivers.csv';
+      }
+      
+      var hiddenElement = document.createElement('a');
+      hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+      hiddenElement.target = '_blank';
+      hiddenElement.download = fileName;
+      hiddenElement.click();
+    }
+    function goToDashboard() {
+      window.location.href = "{% url 'dashboard' %}";
+  }
+  </script>
+</body>
+</html>

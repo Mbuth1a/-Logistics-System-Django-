@@ -1,0 +1,74 @@
+/* reports-theme.css */
+
+/* Body background and text color */
+body {
+    background-color: #f8f9fa; /* Grey background */
+    color: #343a40; /* Dark grey text */
+  }
+  
+  /* Container background */
+  .container {
+    background-color: #ffffff; /* White container background */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Light shadow for container */
+  }
+  
+  /* Header styles */
+  h1 {
+    color: #fd7e14; /* Orange header text */
+  }
+  
+  /* Card styles */
+  .card {
+    margin-top: 20px;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Light shadow for cards */
+  }
+  
+  /* Card headers */
+  .card-header {
+    background-color: #fd7e14; /* Orange card header */
+    color: #ffffff; /* White text */
+    border-bottom: none; /* No border at the bottom */
+    border-radius: 8px 8px 0 0; /* Rounded corners on top */
+  }
+  
+  /* Table styles */
+  table {
+    width: 100%;
+    margin-bottom: 0;
+    background-color: #ffffff; /* White table background */
+    border-collapse: collapse;
+  }
+  
+  /* Table header */
+  table th {
+    background-color: #343a40; /* Dark grey header background */
+    color: #ffffff; /* White text */
+  }
+  
+  /* Table striped rows */
+  table tbody tr:nth-child(odd) {
+    background-color: #f8f9fa; /* Light grey alternate row background */
+  }
+  
+  /* Print button styles */
+  .btn-print {
+    background-color: #007bff; /* Blue print button */
+    color: #ffffff; /* White text */
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+  }
+  
+  /* Download button styles */
+  .btn-download {
+    background-color: #28a745; /* Green download button */
+    color: #ffffff; /* White text */
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+  }
+  

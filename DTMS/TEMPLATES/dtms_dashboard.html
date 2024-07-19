@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DANCO LTD Logistics System</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'dtms_dashboard.css' %}">
+  <style>
+    .nav-link {
+      transition: transform 0.2s ease;
+    }
+
+    .nav-link:hover {
+      transform: translateX(10px);
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>DANCO LTD Logistics System</h2>
+    <ul class="nav flex-column">
+      {% comment %} <li class="nav-item">
+        <a class="nav-link" href="#dashboard">
+          <i class="fas fa-tachometer-alt"></i> DASHBOARD
+        </a>
+      </li> {% endcomment %}
+      <li class="nav-item">
+        <a class="nav-link" id="trips-link" href="#">
+          <i class="fas fa-route"></i> TRIPS
+        </a>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'create_trip' %}">
+              <i class="fas fa-plus"></i> Create Trip
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <i class="fas fa-tasks"></i> Load Trip
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <i class="fas fa-file-alt"></i> Reports
+            </a>
+          </li>
+        </ul>
+      </li>
+      
+
+
+      <li class="nav-item">
+        <a class="nav-link" id="expenses-link" href="#">
+          <i class="fas fa-dollar-sign"></i> EXPENSES
+        </a>
+      </li>
+
+
+
+      <li class="nav-item">
+        <a class="nav-link" id="fuel-link" href="#">
+          <i class="fas fa-gas-pump"></i> FUEL
+        </a>
+      </li>
+
+
+
+      <li class="nav-item">
+        <a class="nav-link" id="maintenance-link" href="#">
+          <i class="fas fa-tools"></i> MAINTENANCE / GARAGE
+        </a>
+      </li>
+
+
+      <li class="nav-item">
+        <a class="nav-link" id="tracking-link" href="#">
+          <i class="fas fa-map-marker-alt"></i> TRACKING
+        </a>
+      </li>
+    </ul>
+  </div>
+<br>
+<br>
+
+  <div class="navbar">
+    <h2></h2>
+    <button class="btn btn-danger">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
+  
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card bg-danger text-white shadow">
+          <div class="card-body">
+            <i class="fas fa-route"></i> Trips
+            <div class="text-white-50">Total: {{ total_trips }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card bg-secondary text-white shadow">
+          <div class="card-body">
+            <i class="fas fa-dollar-sign"></i> Expenses
+            <div class="text-white-50">Total: {{ total_expenses }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card bg-warning text-white shadow">
+          <div class="card-body">
+            <i class="fas fa-gas-pump"></i> Fuel
+            <div class="text-white-50">Total: {{ total_fuel }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card bg-dark text-white shadow">
+          <div class="card-body">
+            <i class="fas fa-tools"></i> Maintenance / Garage
+            <div class="text-white-50">Total: {{ total_maintenance }}</div>
+          </div>
+        </div>
+      </div>
+
+      {% comment %} <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card bg-info text-white shadow">
+          <div class="card-body">
+            <i class="fas fa-map-marker-alt"></i> Tracking
+            <div class="text-white-50">Total: {{ total_tracking }}</div>
+          </div>
+        </div>
+      </div> {% endcomment %}
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

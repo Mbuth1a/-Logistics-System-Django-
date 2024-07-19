@@ -1,0 +1,31 @@
+body {
+    background-color: #e9ecef; /* Light grey background */
+    padding-top: 60px;
+}
+
+.container {
+    background-color: #ffffff; /* White background for the container */
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #ff8c00; /* Orange color for the heading */
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: bold;
+    color: #6c757d; /* Dark grey color for labels */
+}
+
+.btn-primary {
+    background-color: #ff8c00; /* Orange background for the button */
+    border-color: #ff8c00; /* Orange border for the button */
+}
+
+.btn-primary:hover {
+    background-color: #e07b00; /* Darker orange for hover state */
+    border-color: #c66900; /* Darker orange border for hover state */
+}

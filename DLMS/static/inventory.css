@@ -1,0 +1,56 @@
+body {
+    background-color: #f7f7f7;
+    color: #333;
+  }
+  
+  h1 {
+    color: #ff6600;
+  }
+  
+  .btn-primary {
+    background-color: #ff6600;
+    border-color: #ff6600;
+  }
+  
+  .btn-primary:hover {
+    background-color: #e65c00;
+    border-color: #e65c00;
+  }
+  
+  .table thead th {
+    background-color: #ff6600;
+    color: white;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f2f2f2;
+  }
+  
+  .input-group .btn-outline-secondary {
+    color: #ff6600;
+    border-color: #ff6600;
+  }
+  
+  .input-group .btn-outline-secondary:hover {
+    color: white;
+    background-color: #ff6600;
+    border-color: #ff6600;
+  }
+  
+  .modal-header {
+    background-color: #ff6600;
+    color: white;
+  }
+  
+  .modal-content {
+    border-color: #ff6600;
+  }
+  
+  .form-group label {
+    color: #333;
+  }
+  
+  .form-control {
+    border-color: #ccc;
+  }
+  
