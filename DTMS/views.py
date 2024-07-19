@@ -27,15 +27,29 @@ def search_drivers(request):
 
 def load_trip(request):
     if request.method == 'POST':
-        form = LoadTripForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('load_trip')
-    else:
-        form = LoadTripForm()
-    
+        trip_id = request.POST.get('trip')
+        product_id = request.POST.get('product')
+        pieces = request.POST.get('pieces')
+        rolls = request.POST.get('rolls')
+        total_weight = request.POST.get('total_weight')
+
+        trip = Trip.objects.get(id=trip_id)
+        product = Product.objects.get(id=product_id)
+
+        LoadTrip.objects.create(
+            trip=trip,
+            product=product,
+            pieces=pieces,
+            rolls=rolls,
+            total_weight=total_weight
+        )
+
+        return JsonResponse({'status': 'success'})
+
+    trips = Trip.objects.all()
     products = Product.objects.all()
-    return render(request, 'load_trip.html', {'form': form, 'products': products})
+
+    return render(request, 'load_trip.html', {'trips': trips, 'products': products})
 
 
 def load_trip_view(request):
@@ -52,10 +66,16 @@ def load_trip_view(request):
     return render(request, 'load_trip.html', {'form': form, 'products': products, 'trips': trips})
 
 def trip_list_json(request):
-    trips = LoadTrip.objects.all().select_related('product', 'trip')
-    trip_list = list(trips.values(
-        'id', 'trip__from_location', 'trip__to_location', 'product__name', 'product__description', 'pieces', 'rolls', 'total_weight'
-    ))
+    trips = LoadTrip.objects.select_related('trip', 'product').all()
+    trip_list = [{
+        'id': trip.id,
+        'trip__from_location': trip.trip.from_location,
+        'trip__to_location': trip.trip.to_location,
+        'product__name': trip.product.name,
+        'pieces': trip.pieces,
+        'rolls': trip.rolls,
+        'total_weight': trip.total_weight}
+        for trip in trips]
     return JsonResponse({'trips': trip_list})
 
 @csrf_exempt
