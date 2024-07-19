@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from DTMS.forms import*
-
+from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 def dtms_dashboard(request):
     return render(request, 'dtms_dashboard.html')
@@ -30,17 +30,39 @@ def load_trip(request):
         form = LoadTripForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('dtms_dashboard.html')
+            return redirect('load_trip')
     else:
         form = LoadTripForm()
-    return render(request, 'load_trip.html', {'form': form})
+    
+    products = Product.objects.all()
+    return render(request, 'load_trip.html', {'form': form, 'products': products})
+
+
+def load_trip_view(request):
+    if request.method == 'POST':
+        form = LoadTripForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('load_trip')
+    else:
+        form = LoadTripForm()
+    
+    products = Product.objects.all()
+    trips = Trip.objects.all()
+    return render(request, 'load_trip.html', {'form': form, 'products': products, 'trips': trips})
 
 def trip_list_json(request):
-    trips = LoadTrip.objects.all()
-    data = list(trips.values('id', 'trip', 'product__product', 'product__description', 'pieces', 'total_weight'))
-    return JsonResponse({'trips': data})
+    trips = LoadTrip.objects.all().select_related('product', 'trip')
+    trip_list = list(trips.values(
+        'id', 'trip__from_location', 'trip__to_location', 'product__name', 'product__description', 'pieces', 'rolls', 'total_weight'
+    ))
+    return JsonResponse({'trips': trip_list})
 
-def product_list_json(request):
-    products = Product.objects.all()
-    data = list(products.values('id', 'product', 'description', 'weight_per_metre'))
-    return JsonResponse({'products': data})
+@csrf_exempt
+def load_trip(request):
+    if request.method == 'POST':
+        form = LoadTripForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'fail'})

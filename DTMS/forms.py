@@ -36,11 +36,7 @@ class TripForm(forms.ModelForm):
 class LoadTripForm(forms.ModelForm):
     class Meta:
         model = LoadTrip
-        fields = ['product', 'pieces', 'total_weight']
+        fields = ['trip', 'product', 'pieces', 'rolls', 'total_weight']
         widgets = {
             'total_weight': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['product'].queryset = Product.objects.all()
