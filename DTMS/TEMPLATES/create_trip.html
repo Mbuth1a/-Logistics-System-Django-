@@ -67,14 +67,14 @@
             {% csrf_token %}
             <div class="row">
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="id_date"><i class="fas fa-calendar-alt"></i> Date</label>
+                    <div class="form-group ">
+                        <label for="id_date"><i class="fas fa-calendar-alt col-md-10"></i> Date</label>
                         {{ form.date }}
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="id_time"><i class="fas fa-clock"></i> Time</label>
+                        <label for="id_time"><i class="fas fa-clock  col-md-10"></i> Time</label>
                         {{ form.time }}
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="id_description"><i class="fas fa-info-circle"></i> Description</label>
+                        <label for="id_description"><i class="fas fa-info-circle  col-md-10"></i> Description</label>
                         {{ form.description }}
                     </div>
                 </div>
@@ -94,37 +94,37 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="id_driver"><i class="fas fa-user"></i> Driver</label>
+                        <label for="id_driver"><i class="fas fa-user   col-md-10"></i> Driver</label>
                         {{ form.driver }}
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="id_co_driver"><i class="fas fa-user-friends"></i> Co-Driver</label>
+                        <label for="id_co_driver"><i class="fas fa-user-friends   col-md-10"></i> Co-Driver</label>
                         {{ form.co_driver }}
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="id_vehicle"><i class="fas fa-truck"></i> Vehicle</label>
+                        <label for="id_vehicle"><i class="fas fa-truck    col-md-10"></i> Vehicle</label>
                         {{ form.vehicle }}
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="id_from_location"><i class="fas fa-map-marker-alt"></i> From Location</label>
+                        <label for="id_from_location"><i class="fas fa-map-marker-alt  col-md-10"></i> From Location</label>
                         {{ form.from_location }}
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="id_to_location"><i class="fas fa-map-marker-alt"></i> To Location</label>
+                        <label for="id_to_location"><i class="fas fa-map-marker-alt   col-md-10"></i> To Location</label>
                         {{ form.to_location }}
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="id_est_distance"><i class="fas fa-ruler"></i> Estimated Distance</label>
+                        <label for="id_est_distance"><i class="fas fa-ruler   col-md-10"></i> Estimated Distance</label>
                         {{ form.est_distance }}
                         <button type="button" class="btn btn-info mt-2" onclick="calculateDistance()"><i class="fas fa-calculator"></i> Calculate Distance</button>
                     </div>
