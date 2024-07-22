@@ -41,35 +41,3 @@ class Product(models.Model):
     def __str__(self):
         return f"({self.stock_code}) ({self.product})  ({self.description})  ({self.unit_of_measure})  ({self.weight_per_metre})"
     
-# Display the vehicle model as the object representation
-# class Trip(models.Model):
-#     TRIP_TYPES = [
-#         ('delivery', 'Delivery'),
-#         ('sales', 'Sales Trip'),
-#         ('pickup', 'Pick Up'),
-#     ]
-
-#     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
-#     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
-#     departure_location = models.CharField(max_length=255)
-#     departure_time = models.DateTimeField()
-#     arrival_destination = models.CharField(max_length=255)
-#     arrival_time = models.DateTimeField()
-#     trip_type = models.CharField(max_length=50, choices=TRIP_TYPES)
-
-#     def __str__(self):
-#         return f"{self.trip_type} - {self.driver} - {self.vehicle}"
-#     def __str__(self):
-#         return f"{self.trip_type} - {self.driver} - {self.vehicle}"
-
-# class Cargo(models.Model):
-#     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
-#     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
-#     description = models.TextField()
-#     weight = models.FloatField()
-#     handling_requirements = models.TextField()
-
-# class FuelConsumption(models.Model):
-#     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
-#     fuel_used = models.FloatField()
-#     average_fuel_consumption = models.FloatField()

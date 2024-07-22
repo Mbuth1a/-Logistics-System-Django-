@@ -44,7 +44,7 @@
         <a href="#" onclick="goBackToDashboard()"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
     </div>
 
-    <div class="container mt-5">
+    <div class="container mt-1 col-md-10">
         <h2><i class="fas fa-truck"></i> Add New Vehicle</h2>
         <form id="addVehicleForm" method="post" action="{% url 'add_vehicle' %}">
             {% csrf_token %}

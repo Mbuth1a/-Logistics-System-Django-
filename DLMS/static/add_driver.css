@@ -4,12 +4,20 @@ body {
 }
 
 .container {
-    background-color: #ffffff; /* White background for the container */
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding-top: 15px;
+    padding-bottom: 15px;
+    width: calc(100% - 30px);
+    height: calc(100% - 30px);
 }
-
+.table-container {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+    height: calc(100% - 60px);
+    overflow-y: auto;
+}
 h2 {
     color: #ff8c00; /* Orange color for the heading */
     margin-bottom: 20px;

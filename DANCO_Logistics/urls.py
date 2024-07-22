@@ -10,6 +10,7 @@ from DTMS import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('dashboard/',dashboard, name='dashboard'),
+    path('dtms_dashboard/',views.dtms_dashboard, name='dtms_dashboard'),
     # Drivers
     path('add_driver/', add_driver, name='add_driver'),
     path('manage_driver/',manage_driver, name='manage_driver'),
@@ -37,8 +38,7 @@ urlpatterns = [
     
     path('', views.dtms_dashboard, name='dtms_dashboard'),
     path('create_trip/', views.create_trip, name='create_trip'), 
-    path('load_trip/', views.load_trip, name='load_trip'), 
-   path('load-trip/', views.load_trip_view, name='load_trip'),
-    path('trip-list-json/', views.trip_list_json, name='trip_list_json'),
-    path('api/load-trip/', views.load_trip, name='api_load_trip')
+    path('load_trip/', views.load_trip, name='load_trip'),
+    path('api/trips/', views.get_trips, name='get_trips') 
+    
 ]

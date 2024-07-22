@@ -33,10 +33,3 @@ class TripForm(forms.ModelForm):
         self.fields['vehicle'].queryset = Vehicle.objects.filter(trip__isnull=True)
         
         
-class LoadTripForm(forms.ModelForm):
-    class Meta:
-        model = LoadTrip
-        fields = ['trip', 'product', 'pieces', 'rolls', 'total_weight']
-        widgets = {
-            'total_weight': forms.TextInput(attrs={'readonly': 'readonly'}),
-        }

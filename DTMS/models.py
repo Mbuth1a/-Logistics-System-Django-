@@ -1,6 +1,6 @@
 from django.db import models
 from DLMS.models import*
-
+from decimal import Decimal
 # Create your models here.
 class Trip(models.Model):
     date = models.DateField()
@@ -26,10 +26,22 @@ class Trip(models.Model):
     
 class LoadTrip(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='loadtrips')
-    pieces = models.PositiveIntegerField()
-    rolls = models.IntegerField()
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()  # Assuming quantity is positive
+    type = models.CharField(max_length=10, choices=[('pieces', 'Pieces'), ('rolls', 'Rolls')])
     total_weight = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def save(self, *args, **kwargs):
+        # Calculate total weight before saving
+        if self.product:
+            # Convert weight_per_metre to float
+            weight_per_metre = float(self.product.weight_per_metre)
+            if self.type == 'pieces':
+                self.total_weight = Decimal(self.quantity * weight_per_metre)
+            elif self.type == 'rolls':
+                # Assuming rolls are handled similarly
+                self.total_weight = Decimal(self.quantity * weight_per_metre)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.trip} - {self.product} ({self.pieces} pieces) {self.rolls}"
+        return f"LoadTrip {self.id} - Trip {self.trip.id} - Product {self.product.stock_code}"

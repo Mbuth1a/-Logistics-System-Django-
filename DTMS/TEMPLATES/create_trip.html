@@ -61,7 +61,7 @@
     <div class="sidebar">
         <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
     </div>
-    <div class="container">
+    <div class="container col-md-10">
         <h2 class="text-center text-orange"><i class="fas fa-road"></i> Create Trip</h2>
         <form id="createTripForm" method="post" action="{% url 'create_trip' %}">
             {% csrf_token %}
