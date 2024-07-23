@@ -21,7 +21,7 @@ class Trip(models.Model):
     
     
     def __str__(self):
-        return f"({self.vehicle})   ({self.from_location})  ({self.driver})  ({self.co_driver})"
+        return f"|{self.vehicle}|   |{self.from_location}|  |{self.driver}|  |{self.co_driver}|"
     
     
 class LoadTrip(models.Model):

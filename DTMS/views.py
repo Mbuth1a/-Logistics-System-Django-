@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from DTMS.forms import*
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages 
+from decimal import Decimal, InvalidOperation
 # Create your views here.
 def dtms_dashboard(request):
     return render(request, 'dtms_dashboard.html')
@@ -26,59 +28,51 @@ def search_drivers(request):
 
 # Load Trip Views 
 
+@csrf_protect
 def load_trip(request):
     if request.method == 'POST':
         trip_id = request.POST.get('trip')
         product_id = request.POST.get('product')
-        quantity_str = request.POST.get('quantity')
-        load_type = request.POST.get('type')
+        type = request.POST.get('type')
+        quantity = request.POST.get('quantity')
 
-        # Check if all required fields are provided
-        if not all([trip_id, product_id, quantity_str, load_type]):
-            messages.error(request, 'Missing required fields.')  # Use messages for errors
-            return render(request, 'load_trip.html')
-
-        # Convert quantity to float and handle potential conversion error
         try:
-            quantity = float(quantity_str)
-        except (ValueError, TypeError):
-            messages.error(request, 'Invalid quantity value.')
-            return render(request, 'load_trip.html')
+            trip = Trip.objects.get(id=trip_id)
+            product = Product.objects.get(id=product_id)
+            quantity = float(quantity)  # Ensure quantity is an integer
+            weight_per_metre = float(product.weight_per_metre)  # Ensure weight_per_metre is a float
 
-        # Fetch related objects
-        try:
-            trip = Trip.objects.get(pk=trip_id)
-            product = Product.objects.get(pk=product_id)
-        except Trip.DoesNotExist:
-            messages.error(request, 'Trip not found.')
-            return render(request, 'load_trip.html')
-        except Product.DoesNotExist:
-            messages.error(request, 'Product not found.')
-            return render(request, 'load_trip.html')
+            # Calculate total weight
+            total_weight = Decimal(quantity) * Decimal(weight_per_metre)
 
-        # Create and save new LoadTrip instance
-        load_trip = LoadTrip(
-            trip=trip,
-            product=product,
-            quantity=quantity,
-            type=load_type
-        )
-        load_trip.save()
+            load_trip = LoadTrip(
+                trip=trip,
+                product=product,
+                type=type,
+                quantity=quantity,
+                total_weight=total_weight
+            )
+            load_trip.save()
+            return redirect('load_trip')
 
-        messages.success(request, 'Load trip created successfully.')
-        return render(request, 'load_trip.html')  # Redirect to same page after success
+        except (Trip.DoesNotExist, Product.DoesNotExist):
+            # Handle the case where the trip or product does not exist
+            return render(request, 'load_trip.html', {
+                'trips': Trip.objects.all(),
+                'products': Product.objects.all(),
+                'error': 'Selected trip or product does not exist.'
+            })
+        except (ValueError, InvalidOperation):
+            # Handle conversion errors
+            return render(request, 'load_trip.html', {
+                'trips': Trip.objects.all(),
+                'products': Product.objects.all(),
+                'error': 'Invalid quantity or weight data.'
+            })
 
-    # Fetch all trips and products (consider pagination for large datasets)
     trips = Trip.objects.all()
     products = Product.objects.all()
-
-    context = {
-        'trips': trips,
-        'products': products,
-    }
-    return render(request, 'load_trip.html', context)
-
-
+    return render(request, 'load_trip.html', {'trips': trips, 'products': products})
 def get_trips(request):
     trips = Trip.objects.all()
     data = [

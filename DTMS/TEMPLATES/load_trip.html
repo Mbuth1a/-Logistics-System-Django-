@@ -21,14 +21,14 @@
             .form-control { background-color: #f9f9f9; color: #333; }
             .form-control option { background-color: #ffff; color: #333; }
             .search-button:hover { background-color: #ff8c00; }
-            .end-trip-button {
+            .btn-end-trip {
                 background-color: #007bff;
                 color: white;
                 border: none;
                 padding: 5px 10px;
                 cursor: pointer;
             }
-            .end-trip-button:hover {
+            .btn-end-trip:hover {
                 background-color: orange;
             }
             .form-group select {
@@ -123,6 +123,7 @@
                 <button type="submit" class="btn btn-primary btn-block bg-orange mt-4"><i class="fas fa-paper-plane"></i> Submit</button>
             </form>
 
+
             <!-- Table to List Trips -->
             <div class="table-container">
                 <h3 class="text-center text-orange">List of Trips</h3>
@@ -130,16 +131,18 @@
                     <table class="table table-bordered" id="trip-table">
                         <thead>
                             <tr>
+                                <th>Vehicle</th>
+                                <th>Day</th>
                                 <th>Date</th>
                                 <th>Time</th>
-                                <th>Day</th>
+                                
                                 <th>Description</th>
                                 <th>From</th>
                                 <th>To</th>
                                 <th>Driver First Name</th>
                                 <th>Driver Last Name</th>
                                 <th>Co-Driver</th>
-                                <th>Vehicle</th>
+                                
                                 <th>Est. Distance</th>
                                 <th>Action</th>
                             </tr>
@@ -175,16 +178,17 @@
                 trips.forEach(trip => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
+                        <td>${trip.vehicle}</td>
+                        <td>${trip.day}</td>
                         <td>${trip.date}</td>
                         <td>${trip.time}</td>
-                        <td>${trip.day}</td>
                         <td>${trip.description}</td>
                         <td>${trip.from_location}</td>
                         <td>${trip.to_location}</td>
                         <td>${trip.driver}</td>
                         <td>${trip.driver}</td>
                         <td>${trip.co_driver}</td>
-                        <td>${trip.vehicle}</td>
+                        
                         <td>${trip.est_distance}</td>
                         <td><button class="btn btn-primary btn-end-trip" onclick="EndTrip(${trip.id})">END-TRIP</button></td>
                     `;
