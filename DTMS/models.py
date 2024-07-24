@@ -29,7 +29,7 @@ class LoadTrip(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()  # Assuming quantity is positive
     type = models.CharField(max_length=10, choices=[('pieces', 'Pieces'), ('rolls', 'Rolls')])
-    total_weight = models.DecimalField(max_digits=10, decimal_places=2)
+    total_weight = models.FloatField()
     
     def save(self, *args, **kwargs):
         # Calculate total weight before saving
@@ -37,10 +37,10 @@ class LoadTrip(models.Model):
             # Convert weight_per_metre to float
             weight_per_metre = float(self.product.weight_per_metre)
             if self.type == 'pieces':
-                self.total_weight = Decimal(self.quantity * weight_per_metre)
+                self.total_weight = float(self.quantity * weight_per_metre)
             elif self.type == 'rolls':
                 # Assuming rolls are handled similarly
-                self.total_weight = Decimal(self.quantity * weight_per_metre)
+                self.total_weight = float(self.quantity * weight_per_metre)
         super().save(*args, **kwargs)
 
     def __str__(self):

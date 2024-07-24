@@ -8,72 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   {% load static %}
   <link rel="stylesheet" href="{% static 'dtms_dashboard.css' %}">
-  <style>
-    .body {
-        background-color: #333; /* Dark grey background */
-        color: #fff; /* White text color */
-      }
-
-    .nav-link {
-      transition: transform 0.2s ease;
-      color: #fff; /* White text color for nav links */
-    }
-
-    .nav-link:hover {
-      transform: translateX(10px);
-    }
-
-    /* Style the sidebar and navbar for responsiveness */
-    .sidebar {
-      width: 260px; /* Adjust sidebar width as needed */
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      padding-top: 20px;
-      background-color: #333; /* Dark grey background for sidebar */
-    }
-
-    .sidebar h2 {
-      color: #fff; /* White text color for sidebar header */
-    }
-
-    .navbar {
-      padding:  20px; /* Add some padding to the navbar */
-      margin-left: 10px; /* Adjust margin to match the sidebar width */
-      background-color: #333; /* Dark grey background for navbar */
-      color: #333; /* White text color for navbar */
-    }
-
-    /* Style the body content for responsiveness */
-    .container {
-      padding: 20px; /* Remove default padding from container */
-      margin-left: 260px; /* Adjust margin to match the sidebar width */
-      max-width: calc(100% - 280px); /* Allow container to fill available width minus sidebar and padding */
-    }
-
-    .row {
-      margin-right: 0; /* Remove horizontal spacing between columns */
-      margin-left: 0; /* Remove horizontal spacing between columns */
-    }
-
-    .col-lg-3,
-    .col-md-6 {
-      padding: 15px; /* Add some padding to columns */
-    }
-
-    .card {
-      background-color: #6c757d; /* Dark grey background for cards */
-    }
-
-    .card-body {
-      color: #333ff; /* White text color for card body */
-    }
-
-    .card .text-white-50 {
-      color: rgba(255, 255, 255, 0.5); /* 50% white text color */
-    }
-  </style>
+ 
 </head>
 <body>
   <div class="sidebar">
@@ -108,7 +43,7 @@
       </li>
 
       <li class="nav-item">
-        <a class="nav-link" id="expenses-link" href="#">
+        <a class="nav-link" id="expenses-link" href="{% url 'expenses.html' %}">
           <i class="fas fa-dollar-sign"></i> EXPENSES
         </a>
       </li>

@@ -31,48 +31,38 @@ def search_drivers(request):
 @csrf_protect
 def load_trip(request):
     if request.method == 'POST':
-        trip_id = request.POST.get('trip')
-        product_id = request.POST.get('product')
-        type = request.POST.get('type')
-        quantity = request.POST.get('quantity')
-
-        try:
-            trip = Trip.objects.get(id=trip_id)
+        trip_id = request.POST['trip']
+        products = request.POST.getlist('products[]')
+        types = request.POST.getlist('types[]')
+        quantities = request.POST.getlist('quantities[]')
+        
+        trip = Trip.objects.get(id=trip_id)
+        
+        for product_id, type_, quantity in zip(products, types, quantities):
             product = Product.objects.get(id=product_id)
-            quantity = float(quantity)  # Ensure quantity is an integer
-            weight_per_metre = float(product.weight_per_metre)  # Ensure weight_per_metre is a float
-
-            # Calculate total weight
-            total_weight = Decimal(quantity) * Decimal(weight_per_metre)
-
-            load_trip = LoadTrip(
+            weight = product.weight_per_metre * float(quantity)
+            
+            LoadTrip.objects.create(
                 trip=trip,
                 product=product,
-                type=type,
+                type=type_,
                 quantity=quantity,
-                total_weight=total_weight
+                total_weight=weight
             )
-            load_trip.save()
-            return redirect('load_trip')
-
-        except (Trip.DoesNotExist, Product.DoesNotExist):
-            # Handle the case where the trip or product does not exist
-            return render(request, 'load_trip.html', {
-                'trips': Trip.objects.all(),
-                'products': Product.objects.all(),
-                'error': 'Selected trip or product does not exist.'
-            })
-        except (ValueError, InvalidOperation):
-            # Handle conversion errors
-            return render(request, 'load_trip.html', {
-                'trips': Trip.objects.all(),
-                'products': Product.objects.all(),
-                'error': 'Invalid quantity or weight data.'
-            })
-
+        
+        return redirect('load_trip')
+    
     trips = Trip.objects.all()
     products = Product.objects.all()
-    return render(request, 'load_trip.html', {'trips': trips, 'products': products})
+    
+    context = {
+        'trips': trips,
+        'products': products
+    }
+    
+    return render(request, 'load_trip.html', context)
+
+
 def get_trips(request):
     trips = Trip.objects.all()
     data = [

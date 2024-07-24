@@ -6,78 +6,13 @@
     <title>Manage Drivers - DANCO LTD Logistics System</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        body {
-            background-color: #f5f5f5;
-            color: #333;
-            margin: 15px;
-        }
-        h2 {
-            color: #ff8c00; /* Orange color for the heading */
-            margin-bottom: 20px;
-        }
-        .container {
-            padding-top: 15px;
-            padding-bottom: 15px;
-            width: calc(100% - 30px);
-            height: calc(100% - 30px);
-        }
-        .table-container {
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 10px;
-            height: calc(100% - 60px);
-            overflow-y: auto;
-        }
-        .btn-orange {
-            background-color: #ff7700;
-            color: #fff;
-        }
-        .btn-orange:hover {
-            background-color: #e66700;
-        }
-        .btn-grey {
-            background-color: #6c757d;
-            color: #fff;
-        }
-        .btn-grey:hover {
-            background-color: #5a6268;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 200px;
-            height: 100%;
-            background-color: #343a40;
-            padding-top: 20px;
-        }
-        .sidebar a {
-            color: #fff;
-            padding: 15px;
-            text-decoration: none;
-            display: block;
-        }
-        .sidebar a:hover {
-            background-color: #ff8c00;
-        }
-        .main-content {
-            margin-left: 220px;
-        }
-        .back-button {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #343a40;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
-        .back-button:hover {
-            background-color: #ff8c00;
-        }
-    </style>
+    {%load static %}
+    <link rel="stylesheet" href="{% static 'manage_driver.css' %}">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{% static 'manage_driver.js' %}"></script>
+
 </head>
 <body>
 
@@ -188,94 +123,5 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            function loadDrivers() {
-                $.ajax({
-                    url: "{% url 'get_drivers' %}",
-                    method: "GET",
-                    success: function(data) {
-                        var driverTableBody = $('#driverTableBody');
-                        driverTableBody.empty();
-                        data.forEach(function(driver, index) {
-                            driverTableBody.append(`
-                                <tr>
-                                    <td>${index + 1}</td>
-                                    <td>${driver.first_name}</td>
-                                    <td>${driver.last_name}</td>
-                                    <td>${driver.username}</td>
-                                    <td>${driver.license_number}</td>
-                                    <td>${driver.phone_number}</td>
-                                    <td>${driver.email}</td>
-                                    <td>
-                                        <button class="btn btn-orange btn-sm" onclick="editDriver(${driver.id})"><i class="fas fa-edit"></i> Edit</button>
-                                        <button class="btn btn-danger btn-sm" onclick="deleteDriver(${driver.id})"><i class="fas fa-trash"></i> Delete</button>
-                                    </td>
-                                </tr>
-                            `);
-                        });
-                    }
-                });
-            }
-
-            loadDrivers();
-
-            window.editDriver = function(id) {
-                $.ajax({
-                    url: `/edit_driver/${id}/`,
-                    method: "GET",
-                    success: function(data) {
-                        var driver = data;
-                        $('#edit_first_name').val(driver.first_name);
-                        $('#edit_last_name').val(driver.last_name);
-                        $('#edit_username').val(driver.username);
-                        $('#edit_license_number').val(driver.license_number);
-                        $('#edit_phone_number').val(driver.phone_number);
-                        $('#edit_email').val(driver.email);
-                        $('#editDriverModal').modal('show');
-
-                        $('#editDriverForm').off('submit').on('submit', function(e) {
-                            e.preventDefault();
-                            $.ajax({
-                                url: `/edit_driver/${id}/`,
-                                method: "POST",
-                                data: $(this).serialize(),
-                                success: function(response) {
-                                    if (response.status === 'success') {
-                                        $('#editDriverModal').modal('hide');
-                                        loadDrivers();
-                                    } else {
-                                        alert('Error updating driver.');
-                                    }
-                                }
-                            });
-                        });
-                    }
-                });
-            };
-
-            window.deleteDriver = function(id) {
-                $('#deleteDriverModal').modal('show');
-
-                $('#confirmDeleteDriverButton').off('click').on('click', function() {
-                    $.ajax({
-                        url: `/delete_driver/${id}/`,
-                        method: "POST",
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                $('#deleteDriverModal').modal('hide');
-                                loadDrivers();
-                            } else {
-                                alert('Error deleting driver.');
-                            }
-                        }
-                    });
-                });
-            };
-        });
-        function goToDashboard() {
-            window.location.href = "{% url 'dashboard' %}";
-        }
-    </script>
 </body>
 </html>

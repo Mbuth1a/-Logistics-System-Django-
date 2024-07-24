@@ -37,3 +37,23 @@ h2 {
     background-color: #e07b00; /* Darker orange for hover state */
     border-color: #c66900; /* Darker orange border for hover state */
 }
+/* Sidebar styles */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 250px;
+    background-color: #343a40; /* Dark grey background */
+    padding-top: 20px;
+}
+.sidebar a {
+    display: block;
+    padding: 10px;
+    color: #f8f9fa; /* Light grey text */
+    text-decoration: none;
+}
+.sidebar a:hover {
+    background-color: #fd7e14; /* Orange hover background */
+    color: #343a40; /* Dark grey text on hover */
+}

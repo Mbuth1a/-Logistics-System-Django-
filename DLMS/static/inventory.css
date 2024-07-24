@@ -53,4 +53,35 @@ body {
   .form-control {
     border-color: #ccc;
   }
-  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100%;
+    background-color: #343a40;
+    padding-top: 20px;
+}
+.sidebar a {
+    color: #fff;
+    padding: 15px;
+    text-decoration: none;
+    display: block;
+}
+.sidebar a:hover {
+    background-color: #ff8c00;
+}
+.main-content {
+    margin-left: 220px;
+}
+.back-button {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #343a40;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+.back-button:hover {
+    background-color: #ff8c00;
+}

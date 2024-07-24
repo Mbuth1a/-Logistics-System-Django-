@@ -8,45 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   {% load static %}
   <link rel="stylesheet" href="{% static 'reports.css' %}"> <!-- Include the new theme CSS file -->
-  <style>
-    @media print {
-      .no-print {
-        display: none;
-      }
-    }
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 200px;
-      height: 100%;
-      background-color: #343a40;
-      padding-top: 20px;
-  }
-  .sidebar a {
-      color: #fff;
-      padding: 15px;
-      text-decoration: none;
-      display: block;
-  }
-  .sidebar a:hover {
-      background-color: #ff8c00;
-  }
-  .main-content {
-      margin-left: 220px;
-  }
-  .back-button {
-      display: inline-block;
-      padding: 10px 15px;
-      background-color: #343a40;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-  }
-  .back-button:hover {
-      background-color: #ff8c00;
-  }
-  </style>
+  
 </head>
 <body>
   <div class="sidebar">
@@ -206,8 +168,8 @@
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></scrip>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></scr>
   <script>
     function printSection(sectionId) {
       var printContents = document.getElementById(sectionId).innerHTML;

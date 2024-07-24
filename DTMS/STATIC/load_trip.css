@@ -1,0 +1,50 @@
+
+            .text-orange { color: orange; }
+            .text-grey { color: grey; }
+            .bg-orange { background-color: orange; }
+            .form-group { padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px; }
+            .sidebar { position: fixed; top: 0; left: 0; width: 200px; height: 100%; background-color: #343a40; padding-top: 20px; }
+            .sidebar a { color: #fff; padding: 15px; text-decoration: none; display: block; }
+            .sidebar a:hover { background-color: #ff8c00; }
+            .main-content { margin-left: 220px; }
+            .back-button { display: inline-block; padding: 10px 15px; background-color: #343a40; color: #fff; border: none; cursor: pointer; }
+            .back-button:hover { background-color: #ff8c00; }
+            .table-container { margin-top: 20px; }
+            .form-control { background-color: #f9f9f9; color: #333; }
+            .form-control option { background-color: #ffff; color: #333; }
+            .search-button:hover { background-color: #ff8c00; }
+            .btn-end-trip {
+                background-color: #007bff;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                cursor: pointer;
+            }
+            .btn-end-trip:hover {
+                background-color: orange;
+            }
+            .form-group select {
+                background-color: #ffffff; /* Ensure background is white */
+                color: #333; /* Ensure text color is dark for good contrast */
+                padding: 0px; /* Ensure padding for better visibility */
+            }
+            .form-group input[type="text"], 
+            .form-group input[type="number"] {
+                background-color: #ffffff; /* Ensure background is white */
+                color: #333; /* Ensure text color is dark for good contrast */
+                padding: 14px; /* Ensure padding for better visibility */
+            }
+            @media (max-width: 992px) {
+                .sidebar { width: 200px; }
+                .main-content { margin-left: 220px; }
+            }
+            @media (max-width: 768px) {
+                .sidebar { width: 100%; height: auto; position: relative; }
+                .main-content { margin-left: 0; }
+            }
+            @media (max-width: 576px) {
+                .sidebar { width: 100%; height: auto; position: relative; }
+                .form-group { padding: 5px; }
+                .back-button { padding: 5px 10px; }
+            }
+        

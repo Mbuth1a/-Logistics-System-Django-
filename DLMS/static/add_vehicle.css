@@ -29,3 +29,31 @@ h2 {
     background-color: #e07b00; /* Darker orange for hover state */
     border-color: #c66900; /* Darker orange border for hover state */
 }
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 200px;
+    background-color: #343a40; /* Dark grey background */
+    padding-top: 20px;
+}
+
+.sidebar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #ffffff; /* White text */
+    display: block;
+}
+
+.sidebar a:hover {
+    background-color: #ff7700; /* Orange on hover */
+    color: #ffffff; /* White text on hover */
+}
+
+.container {
+    margin-left: 220px; /* Adjusted to accommodate sidebar */
+    padding: 20px;
+}
