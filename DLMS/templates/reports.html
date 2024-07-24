@@ -45,9 +45,8 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Username</th>
-                <th>First Name</th>
-                <th>Last Name</th>
+                <th>Employee Number</th>
+                <th>Full Name</th>
                 <th>License Number</th>
                 <th>Phone Number</th>
                 <th>Email</th>
@@ -57,9 +56,8 @@
               {% for driver in drivers %}
               <tr>
                 <td>{{ driver.id }}</td>
-                <td>{{ driver.username }}</td>
-                <td>{{ driver.first_name }}</td>
-                <td>{{ driver.last_name }}</td>
+                <td>{{ driver.employee_number }}</td>
+                <td>{{ driver.full_name }}</td>
                 <td>{{ driver.license_number }}</td>
                 <td>{{ driver.phone_number }}</td>
                 <td>{{ driver.email }}</td>
@@ -168,8 +166,8 @@
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></scrip>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></scr>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script>
     function printSection(sectionId) {
       var printContents = document.getElementById(sectionId).innerHTML;
@@ -185,7 +183,7 @@
       if (section === 'drivers') {
         csv = 'ID,Username,First Name,Last Name,License Number,Phone Number,Email\n';
         {% for driver in drivers %}
-        csv += '{{ driver.id }},{{ driver.username }},{{ driver.first_name }},{{ driver.last_name }},{{ driver.license_number }},{{ driver.phone_number }},{{ driver.email }}\n';
+        csv += '{{ driver.id }},{{ driver.employee_number }},{{ driver.full_name }},{{ driver.license_number }},{{ driver.phone_number }},{{ driver.email }}\n';
         {% endfor %}
         fileName = 'drivers.csv';
       } else if (section === 'vehicles') {

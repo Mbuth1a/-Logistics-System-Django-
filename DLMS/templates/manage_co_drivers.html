@@ -6,12 +6,78 @@
     <title>Manage Co-Drivers - DANCO LTD Logistics System</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'manage_co_driver.css' %}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="{% static 'manage_co_driver.js' %}"></script>
+    <style>
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 15px;
+        }
+        h2 {
+            color: #ff8c00; /* Orange color for the heading */
+            margin-bottom: 20px;
+        }
+        .container {
+            padding-top: 15px;
+            padding-bottom: 15px;
+            width: calc(100% - 30px);
+            height: calc(100% - 30px);
+        }
+        .table-container {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            height: calc(100% - 60px);
+            overflow-y: auto;
+        }
+        .btn-orange {
+            background-color: #ff7700;
+            color: #fff;
+        }
+        .btn-orange:hover {
+            background-color: #e66700;
+        }
+        .btn-grey {
+            background-color: #6c757d;
+            color: #fff;
+        }
+        .btn-grey:hover {
+            background-color: #5a6268;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100%;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #fff;
+            padding: 15px;
+            text-decoration: none;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #ff8c00;
+        }
+        .main-content {
+            margin-left: 220px;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #343a40;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background-color: #ff8c00;
+        }
+    </style>
 </head>
 <body>
     <div class="sidebar">
@@ -49,6 +115,7 @@
             </table>
         </div>
     </div>
+
     <!-- Edit Co-Driver Modal -->
     <div class="modal fade" id="editCoDriverModal" tabindex="-1" aria-labelledby="editCoDriverModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -84,6 +151,7 @@
             </div>
         </div>
     </div>
+
     <!-- Delete Co-Driver Modal -->
     <div class="modal fade" id="deleteCoDriverModal" tabindex="-1" aria-labelledby="deleteCoDriverModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -104,8 +172,102 @@
             </div>
         </div>
     </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Ensure jQuery is ready
+        $(document).ready(function() {
+    
+            // Function to load co-drivers via AJAX
+            function loadCoDrivers() {
+                $.ajax({
+                    url: "{% url 'get_codrivers' %}",
+                    method: "GET",
+                    success: function(data) {
+                        var coDriverTableBody = $('#codriverTableBody');
+                        coDriverTableBody.empty();
+                        data.forEach(function(codriver, index) {
+                            coDriverTableBody.append(`
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${codriver.employee_number}</td>
+                                    <td>${codriver.co_driver_name}</td>
+                                    <td>${codriver.phone_number}</td>
+                                    <td>${codriver.email_address}</td>
+                                    <td>
+                                        <button class="btn btn-orange btn-sm" onclick="editCoDriver(${codriver.id})"><i class="fas fa-edit"></i> Edit</button>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteCoDriver(${codriver.id})"><i class="fas fa-trash"></i> Delete</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                });
+            }
+    
+            // Initial load of co-drivers
+            loadCoDrivers();
+    
+            // Edit co-driver function
+            window.editCoDriver = function(id) {
+                $.ajax({
+                    url: `/edit_codriver/${id}/`,
+                    method: "GET",
+                    success: function(data) {
+                        var codriver = data;
+                        $('#edit_employeeNumber').val(codriver.employee_number);
+                        $('#edit_coDriverName').val(codriver.co_driver_name);
+                        $('#edit_phoneNumber').val(codriver.phone_number);
+                        $('#edit_emailAddress').val(codriver.email_address);
+                        $('#editCoDriverModal').modal('show');
+    
+                        $('#editCoDriverForm').off('submit').on('submit', function(e) {
+                            e.preventDefault();
+                            $.ajax({
+                                url: `/edit_codriver/${id}/`,
+                                method: "POST",
+                                data: $(this).serialize(),
+                                success: function(response) {
+                                    if (response.status === 'success') {
+                                        $('#editCoDriverModal').modal('hide');
+                                        loadCoDrivers();
+                                    } else {
+                                        alert('Error updating co-driver.');
+                                    }
+                                }
+                            });
+                        });
+                    }
+                });
+            };
+    
+            // Delete co-driver function
+            window.deleteCoDriver = function(id) {
+                $('#deleteCoDriverModal').modal('show');
+    
+                $('#confirmDeleteCoDriverButton').off('click').on('click', function() {
+                    $.ajax({
+                        url: `/delete_codriver/${id}/`,
+                        method: "POST",
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#deleteCoDriverModal').modal('hide');
+                                loadCoDrivers();
+                            } else {
+                                alert('Error deleting co-driver.');
+                            }
+                        }
+                    });
+                });
+            };
+        });
+        function goToDashboard() {
+            window.location.href = "{% url 'dashboard' %}";
+        }
+    </script>
+    
 </body>
 </html>

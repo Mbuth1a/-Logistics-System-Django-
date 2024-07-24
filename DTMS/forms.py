@@ -33,3 +33,15 @@ class TripForm(forms.ModelForm):
         self.fields['vehicle'].queryset = Vehicle.objects.filter(trip__isnull=True)
         
         
+class ExpenseForm(forms.ModelForm):
+    class Meta:
+        model = Expense
+        fields = ['trip', 'vehicle_reg_no', 'driver_full_name', 'driver_amount', 'co_driver_name', 'co_driver_amount']
+        widgets = {
+            'trip': forms.HiddenInput(),  # Hide this field if setting trip ID in view
+            'driver_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter amount'}),
+            'co_driver_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter amount'}),
+            'vehicle_reg_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'driver_full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'co_driver_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }

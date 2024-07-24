@@ -1,0 +1,31 @@
+<!-- expenses_page.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses for Trip {{ trip.id }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Expenses for Trip ID: {{ trip.id }}</h2>
+        <p><strong>Vehicle Registration Number:</strong> {{ trip.vehicle.registration_number }}</p>
+        <p><strong>Driver:</strong> {{ trip.driver.first_name }}</p>
+        <p><strong>Co-Driver:</strong> {{ trip.co_driver.name }}</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="driver_expense">Expense for Driver</label>
+                {{ form.driver_expense }}
+            </div>
+            <div class="form-group">
+                <label for="co_driver_expense">Expense for Co-Driver</label>
+                {{ form.co_driver_expense }}
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</body>
+</html>

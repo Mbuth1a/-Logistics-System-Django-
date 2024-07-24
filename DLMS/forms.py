@@ -4,7 +4,7 @@ from .models import Driver, Vehicle, CoDriver,Product
 class DriverForm(forms.ModelForm):
     class Meta:
         model = Driver
-        fields = ['first_name', 'last_name', 'username', 'license_number', 'phone_number', 'email']
+        fields = ['full_name', 'employee_number', 'license_number', 'phone_number', 'email']
 
 
 class VehicleForm(forms.ModelForm):

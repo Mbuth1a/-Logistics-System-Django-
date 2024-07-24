@@ -21,7 +21,7 @@ class Trip(models.Model):
     
     
     def __str__(self):
-        return f"|{self.vehicle}|   |{self.from_location}|  |{self.driver}|  |{self.co_driver}|"
+        return f"|{self.vehicle}|   |{self.from_location}| |{self.to_location}| |{self.driver}|  |{self.co_driver}|"
     
     
 class LoadTrip(models.Model):
@@ -45,3 +45,16 @@ class LoadTrip(models.Model):
 
     def __str__(self):
         return f"LoadTrip {self.id} - Trip {self.trip.id} - Product {self.product.stock_code}"
+    
+    
+    
+class Expense(models.Model):
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
+    vehicle_reg_no = models.CharField(max_length=50)
+    driver_full_name = models.CharField(max_length=100)
+    driver_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    co_driver_name = models.CharField(max_length=100)
+    co_driver_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f'Expense for Trip ID: {self.trip.id}'

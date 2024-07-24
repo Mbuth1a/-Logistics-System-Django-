@@ -1,15 +1,14 @@
 from django.db import models
 
 class Driver(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    username = models.CharField(max_length=100)
+    full_name = models.CharField(max_length=100)
+    employee_number = models.CharField(max_length=100)
     license_number = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=15)
     email = models.EmailField()
 
     def __str__(self):
-        return f"  ({self.username}) {self.first_name} {self.last_name} "
+        return f"  ({self.employee_number}) {self.full_name}  "
     
     
     

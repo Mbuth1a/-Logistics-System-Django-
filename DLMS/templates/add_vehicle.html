@@ -6,12 +6,67 @@
     <title>Add New Vehicle - DANCO LTD Logistics System</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'add_driver.css' %}">
-    <script src="{% static 'add_driver.js' %}">
-
-    </script>
-    
+    <style>
+        body {
+            background-color: #e9ecef; /* Light grey background */
+            padding-top: 60px;
+        }
+        
+        .container {
+            background-color: #ffffff; /* White background for the container */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            color: #ff8c00; /* Orange color for the heading */
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            font-weight: bold;
+            color: #6c757d; /* Dark grey color for labels */
+        }
+        
+        .btn-primary {
+            background-color: #ff8c00; /* Orange background for the button */
+            border-color: #ff8c00; /* Orange border for the button */
+        }
+        
+        .btn-primary:hover {
+            background-color: #e07b00; /* Darker orange for hover state */
+            border-color: #c66900; /* Darker orange border for hover state */
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 200px;
+            background-color: #343a40; /* Dark grey background */
+            padding-top: 20px;
+        }
+        
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #ffffff; /* White text */
+            display: block;
+        }
+        
+        .sidebar a:hover {
+            background-color: #ff7700; /* Orange on hover */
+            color: #ffffff; /* White text on hover */
+        }
+        
+        .container {
+            margin-left: 220px; /* Adjusted to accommodate sidebar */
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -46,8 +101,27 @@
             <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-paper-plane"></i> Submit</button>
         </form>
     </div>
+    <script>
+        function goBackToDashboard() {
+            // Replace with your dashboard URL
+            window.location.href = "/dashboard";
+        }
+    
+        document.getElementById('addVehicleForm').addEventListener('submit', function(event) {
+            var vehicleRegNo = document.getElementById('id_vehicle_regno').value;
+            var vehicleModel = document.getElementById('id_vehicle_model').value;
+            var vehicleType = document.getElementById('id_vehicle_type').value;
+            var engineNumber = document.getElementById('id_engine_number').value;
+            var capacity = document.getElementById('id_capacity').value;
+
+            if (!vehicleRegNo || !vehicleModel || !vehicleType || !engineNumber || !capacity) {
+                alert('Please fill in all fields.');
+                event.preventDefault(); // Prevent form submission
+            }
+        });
+    </script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></scri>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

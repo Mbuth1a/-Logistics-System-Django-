@@ -89,9 +89,8 @@ def edit_driver(request, id):
             return JsonResponse({'status': 'error'})
     else:
         data ={
-            'first_name': driver.first_name,
-            'last_name': driver.last_name,
-            'username': driver.username,
+            'full_name': driver.full_name,
+            'employee_number': driver.employee_number,
             'license_number': driver.license_number,
             'phone_number': driver.phone_number,
             'email': driver.email,

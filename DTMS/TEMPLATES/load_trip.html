@@ -11,8 +11,59 @@
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
-        <script src="{% static 'load_trip.js' %}"></script>
-        <link rel="stylesheet" href="{% static 'load_trip.css' %}"
+        
+        <link rel="stylesheet" href="{% static 'load_trip.css' %}">
+        <style>
+            
+            .text-orange { color: orange; }
+            .text-grey { color: grey; }
+            .bg-orange { background-color: orange; }
+            .form-group { padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px; }
+            .sidebar { position: fixed; top: 0; left: 0; width: 200px; height: 100%; background-color: #343a40; padding-top: 20px; }
+            .sidebar a { color: #fff; padding: 15px; text-decoration: none; display: block; }
+            .sidebar a:hover { background-color: #ff8c00; }
+            .main-content { margin-left: 220px; }
+            .back-button { display: inline-block; padding: 10px 15px; background-color: #343a40; color: #fff; border: none; cursor: pointer; }
+            .back-button:hover { background-color: #ff8c00; }
+            .table-container { margin-top: 20px; }
+            .form-control { background-color: #f9f9f9; color: #333; }
+            .form-control option { background-color: #ffff; color: #333; }
+            .search-button:hover { background-color: #ff8c00; }
+            .btn-end-trip {
+                background-color: #007bff;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                cursor: pointer;
+            }
+            .btn-end-trip:hover {
+                background-color: orange;
+            }
+            .form-group select {
+                background-color: #ffffff; /* Ensure background is white */
+                color: #333; /* Ensure text color is dark for good contrast */
+                padding: 0px; /* Ensure padding for better visibility */
+            }
+            .form-group input[type="text"], 
+            .form-group input[type="number"] {
+                background-color: #ffffff; /* Ensure background is white */
+                color: #333; /* Ensure text color is dark for good contrast */
+                padding: 14px; /* Ensure padding for better visibility */
+            }
+            @media (max-width: 992px) {
+                .sidebar { width: 200px; }
+                .main-content { margin-left: 220px; }
+            }
+            @media (max-width: 768px) {
+                .sidebar { width: 100%; height: auto; position: relative; }
+                .main-content { margin-left: 0; }
+            }
+            @media (max-width: 576px) {
+                .sidebar { width: 100%; height: auto; position: relative; }
+                .form-group { padding: 5px; }
+                .back-button { padding: 5px 10px; }
+            }
+        </style>
     </head>
     <body>
         <div class="sidebar">
@@ -95,10 +146,8 @@
                                 <th>Description</th>
                                 <th>From</th>
                                 <th>To</th>
-                                <th>Driver First Name</th>
-                                <th>Driver Last Name</th>
-                                <th>Co-Driver</th>
-                                
+                                <th>Driver's Name</th>
+                                <th>Co-Driver's Name</th>
                                 <th>Est. Distance</th>
                                 <th>Action</th>
                             </tr>
@@ -110,9 +159,131 @@
                 </div>
             </div>
         </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                fetchTrips();
+            });
+            
+            function fetchTrips() {
+                fetch('/api/trips/')
+                    .then(response => response.json())
+                    .then(trips => {
+                        displayTrips(trips);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching trips:', error);
+                    });
+            }
+            
+            function displayTrips(trips) {
+                const tripTableBody = document.getElementById('trip-table-body');
+                tripTableBody.innerHTML = '';
+            
+                trips.forEach(trip => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${trip.vehicle}</td>
+                        <td>${trip.day}</td>
+                        <td>${trip.date}</td>
+                        <td>${trip.time}</td>
+                        <td>${trip.description}</td>
+                        <td>${trip.from_location}</td>
+                        <td>${trip.to_location}</td>
+                        <td>${trip.driver}</td>
+                        <td>${trip.co_driver}</td>
+                        <td>${trip.est_distance}</td>
+                        
 
-    
-        <script src="{% static '/load_trip.js' %}"></script>
+                        <td><button class="btn btn-primary btn-end-trip" onclick="EndTrip(${trip.id})">END-TRIP</button></td>
+                    `;
+                    tripTableBody.appendChild(tr);
+                });
+            }
+            
+            function EndTrip(tripId) {
+                // Add functionality to view trip details
+                window.location.href = `/trip/${tripId}/`;
+            }
+            
+            function goToDashboard() {
+                window.location.href = '/dtms_dashboard/';
+            }
+            
+            function calculateTotalWeight() {
+                const productSelect = document.getElementById('id_product');
+                const quantityInput = document.getElementById('id_quantity');
+                const totalWeightInput = document.getElementById('id_total_weight');
+                
+                const selectedProduct = productSelect.options[productSelect.selectedIndex];
+                const weightPerMetre = parseFloat(selectedProduct.getAttribute('data-weight'));
+                const quantity = parseFloat(quantityInput.value) || 0;
+                
+                const totalWeight = quantity * weightPerMetre;
+                totalWeightInput.value = totalWeight.toFixed(2);
+            }
+            
+            
+            let originalOptions = [];
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                // Store original options on page load
+                const productSelect = document.getElementById('id_product');
+                originalOptions = Array.from(productSelect.options);
+            });
+            
+            function searchProduct() {
+                const searchValue = document.getElementById('product_search').value.toLowerCase();
+                const productSelect = document.getElementById('id_product');
+                const options = productSelect.getElementsByTagName('option');
+                
+                let found = false;
+                let firstMatchIndex = -1;
+                
+                // Reset options to their original state before filtering
+                productSelect.innerHTML = '';
+                originalOptions.forEach(option => productSelect.add(option));
+            
+                for (let i = 0; i < options.length; i++) {
+                    const option = options[i];
+                    const stockCode = option.textContent.split(' - ')[0].toLowerCase();
+            
+                    if (stockCode.includes(searchValue) && searchValue.trim() !== '') {
+                        option.style.display = '';
+                        if (firstMatchIndex === -1) {
+                            firstMatchIndex = i;  // Store index of the first match
+                        }
+                        found = true;
+                    } else {
+                        option.style.display = 'none';
+                    }
+                }
+            
+                // Add placeholder if no options are visible
+                if (!found) {
+                    productSelect.innerHTML = '<option value="" disabled selected>Search by product code</option>';
+                } else {
+                    // Set the first matched product as selected
+                    if (firstMatchIndex !== -1) {
+                        productSelect.selectedIndex = firstMatchIndex;
+                    }
+                }
+            }
+            
+            
+            function toggleQuantityInput() {
+                const typeSelect = document.getElementById('id_type');
+                const quantityLabel = document.querySelector('label[for="id_quantity"]');
+                const quantityInput = document.getElementById('id_quantity');
+                
+                if (typeSelect.value === 'pieces') {
+                    quantityLabel.innerHTML = '<i class="fas fa-calculator"></i> Pieces';
+                    quantityInput.name = 'pieces';
+                } else {
+                    quantityLabel.innerHTML = '<i class="fas fa-calculator"></i> Rolls';
+                    quantityInput.name = 'rolls';
+                }
+            }
+        </script>            
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     </body>
     </html>
