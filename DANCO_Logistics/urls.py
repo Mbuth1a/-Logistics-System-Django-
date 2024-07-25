@@ -44,4 +44,5 @@ urlpatterns = [
     path('fetch_trips/', views.fetch_trips, name='fetch_trips'),
     path('get_trip_details/', views.get_trip_details, name='get_trip_details'),
     path('assign_expenses/', views.assign_expenses, name='assign_expenses'),
+    path('fetch_assigned_expenses/', views.fetch_assigned_expenses, name='fetch_assigned_expenses'),
 ]

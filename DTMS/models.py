@@ -1,5 +1,6 @@
 from django.db import models
 from DLMS.models import*
+from django.utils import timezone
 from decimal import Decimal
 # Create your models here.
 class Trip(models.Model):
@@ -47,7 +48,11 @@ class LoadTrip(models.Model):
         return f"LoadTrip {self.id} - Trip {self.trip.id} - Product {self.product.stock_code}"
     
     
-class Expense(models.Model):
-    trip = models.OneToOneField(Trip, on_delete=models.CASCADE)
-    driver_expense = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    co_driver_expense = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+class Expenses(models.Model):
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
+    driver_expense = models.DecimalField(max_digits=10, decimal_places=2)
+    co_driver_expense = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Trip ID: {self.trip.id}, Driver Expense: {self.driver_expense}, Co-Driver Expense: {self.co_driver_expense}"

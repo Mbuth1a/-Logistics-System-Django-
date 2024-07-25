@@ -131,6 +131,7 @@ def get_trip_details(request):
         return JsonResponse({'error': 'Trip not found'}, status=404)
 
 
+@csrf_exempt
 def assign_expenses(request):
     if request.method == 'POST':
         trip_id = request.POST.get('trip_id')
@@ -138,11 +139,32 @@ def assign_expenses(request):
         co_driver_expense = request.POST.get('co_driver_expense')
 
         trip = get_object_or_404(Trip, id=trip_id)
-        expense, created = Expense.objects.get_or_create(trip=trip)
 
-        expense.driver_expense = driver_expense
-        expense.co_driver_expense = co_driver_expense
-        expense.save()
+        expense = Expenses.objects.create(
+            trip=trip,
+            driver_expense=driver_expense,
+            co_driver_expense=co_driver_expense
+        )
 
         return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
+
+    return JsonResponse({'status': 'fail'}, status=400)
+
+def fetch_assigned_expenses(request):
+    expenses = Expenses.objects.all()
+    expenses_data = []
+
+    for expense in expenses:
+        expenses_data.append({
+            'trip_id': expense.trip.id,
+            'vehicle': expense.trip.vehicle.vehicle_regno,
+            'date': expense.trip.date,
+            'from_location': expense.trip.from_location,
+            'to_location': expense.trip.to_location,
+            'driver_name': expense.trip.driver.full_name,
+            'co_driver_name': expense.trip.co_driver.co_driver_name,
+            'driver_expense': expense.driver_expense,
+            'co_driver_expense': expense.co_driver_expense,
+        })
+
+    return JsonResponse(expenses_data, safe=False)

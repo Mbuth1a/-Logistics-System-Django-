@@ -35,5 +35,5 @@ class TripForm(forms.ModelForm):
         
 class ExpenseForm(forms.ModelForm):
     class Meta:
-        model = Expense
+        model = Expenses
         fields = ['driver_expense', 'co_driver_expense']
