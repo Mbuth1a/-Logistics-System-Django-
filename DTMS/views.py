@@ -83,20 +83,66 @@ def get_trips(request):
     return JsonResponse(data, safe=False)
 
 
-def expenses(request, trip_id):
-    trip = get_object_or_404(Trip, id=trip_id)  # Handles the 404 error
+def expenses(request):
+    return render(request, 'expenses.html')
 
+def fetch_trips(request):
+    trips = Trip.objects.all()
+    data = [
+        {
+            'id': trip.id,
+            'date': trip.date.isoformat(),
+            'time': trip.time.isoformat(),
+            'day': trip.day,
+            'description': trip.description,
+            'driver': trip.driver.full_name,  # Assuming Driver model has a 'full_name' field
+            'co_driver': trip.co_driver.co_driver_name,  # Assuming CoDriver model has a 'co_driver_name' field
+            'vehicle': str(trip.vehicle),  # Using the __str__ representation of Vehicle
+            'from_location': trip.from_location,
+            'to_location': trip.to_location,
+            'est_distance': trip.est_distance
+        } for trip in trips
+    ]
+    return JsonResponse(data, safe=False)
+
+def get_trip_details(request):
+    trip_id = request.GET.get('trip_id')  # Remove the comma here
+    try:
+        trip = Trip.objects.get(id=trip_id)
+        trip_data = {
+            'id': trip.id,
+            'date': trip.date.isoformat(),
+            'time': trip.time.isoformat(),
+            'day': trip.day,
+            'description': trip.description,
+            'driver': {
+                'full_name': trip.driver.full_name,
+            },
+            'co_driver': {
+                'co_driver_name': trip.co_driver.co_driver_name,
+            },
+            'vehicle': trip.vehicle.vehicle_regno,  # Use a string representation or a serializable field
+            'from_location': trip.from_location,
+            'to_location': trip.to_location,
+            'est_distance': trip.est_distance,
+        }
+        return JsonResponse(trip_data)
+    except Trip.DoesNotExist:
+        return JsonResponse({'error': 'Trip not found'}, status=404)
+
+
+def assign_expenses(request):
     if request.method == 'POST':
-        form = ExpenseForm(request.POST)
-        if form.is_valid():
-            expense = form.save(commit=False)
-            expense.trip = trip
-            expense.vehicle_reg_no = trip.vehicle.registration_number
-            expense.driver_first_name = trip.driver.first_name
-            expense.co_driver_name = trip.co_driver.name
-            expense.save()
-            return redirect('expenses_list')  # Replace with the name of the URL pattern
-    else:
-        form = ExpenseForm()
-    
-    return render(request, 'expenses.html', {'form': form, 'trip': trip})
+        trip_id = request.POST.get('trip_id')
+        driver_expense = request.POST.get('driver_expense')
+        co_driver_expense = request.POST.get('co_driver_expense')
+
+        trip = get_object_or_404(Trip, id=trip_id)
+        expense, created = Expense.objects.get_or_create(trip=trip)
+
+        expense.driver_expense = driver_expense
+        expense.co_driver_expense = co_driver_expense
+        expense.save()
+
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)

@@ -40,5 +40,8 @@ urlpatterns = [
     path('create_trip/', views.create_trip, name='create_trip'), 
     path('load_trip/', views.load_trip, name='load_trip'),
     path('api/trips/', views.get_trips, name='get_trips'),
-    path('expenses/', views.expenses, name='expenses')
+    path('expenses/', views.expenses, name='expenses'),
+    path('fetch_trips/', views.fetch_trips, name='fetch_trips'),
+    path('get_trip_details/', views.get_trip_details, name='get_trip_details'),
+    path('assign_expenses/', views.assign_expenses, name='assign_expenses'),
 ]

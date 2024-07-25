@@ -1,31 +1,165 @@
-<!-- expenses_page.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expenses for Trip {{ trip.id }}</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Expenses</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .text-orange { color: orange; }
+        .text-grey { color: grey; }
+        .bg-orange { background-color: orange; }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h2>Expenses for Trip ID: {{ trip.id }}</h2>
-        <p><strong>Vehicle Registration Number:</strong> {{ trip.vehicle.registration_number }}</p>
-        <p><strong>Driver:</strong> {{ trip.driver.first_name }}</p>
-        <p><strong>Co-Driver:</strong> {{ trip.co_driver.name }}</p>
-        
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="driver_expense">Expense for Driver</label>
-                {{ form.driver_expense }}
-            </div>
-            <div class="form-group">
-                <label for="co_driver_expense">Expense for Co-Driver</label>
-                {{ form.co_driver_expense }}
-            </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
+    <div class="container col-md-12 mt-4">
+        <h2 class="text-center text-orange"><i class="fas fa-money-bill-wave"></i> Assign Expenses</h2>
+        <table class="table table-striped mt-4">
+            <thead>
+                <tr>
+                    <th>Trip ID</th>
+                    <th>Vehicle</th>
+                    <th>Date</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Driver</th>
+                    <th>Co-Driver</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tripsList">
+                <!-- Trips will be dynamically inserted here -->
+            </tbody>
+        </table>
     </div>
+
+    <!-- Modal for Assigning Expenses -->
+    <div class="modal fade" id="expenseModal" tabindex="-1" role="dialog" aria-labelledby="expenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="expenseModalLabel">Assign Expenses</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="assignExpenseForm">
+                        <input type="hidden" id="tripId">
+                        <div class="form-group">
+                            <label for="regNo">Vehicle Registration Number</label>
+                            <input type="text" class="form-control" id="regNo" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="driverName">Driver Name</label>
+                            <input type="text" class="form-control" id="driverName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="driverExpense">Driver Expense</label>
+                            <input type="number" class="form-control" id="driverExpense" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="coDriverName">Co-Driver Name</label>
+                            <input type="text" class="form-control" id="coDriverName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="coDriverExpense">Co-Driver Expense</label>
+                            <input type="number" class="form-control" id="coDriverExpense" min="0">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary bg-orange" onclick="saveExpenses()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            fetchTrips();
+            
+            function fetchTrips() {
+                $.ajax({
+                    url: "{% url 'fetch_trips' %}",
+                    method: 'GET',
+                    success: function(response) {
+                        let tripsList = $('#tripsList');
+                        tripsList.empty();
+                        response.forEach(function(trip) {
+                            let tableRow = `<tr data-id="${trip.id}">
+                                            <td>${trip.id}</td>
+                                            <td>${trip.vehicle}</td>
+                                            <td>${trip.date}</td>
+                                            <td>${trip.from_location}</td>
+                                            <td>${trip.to_location}</td>
+                                            <td>${trip.driver}</td>
+                                            <td>${trip.co_driver}</td>
+                                            <td><button class="btn btn-primary" onclick="openModal(${trip.id})">Assign Expense</button></td>
+                                        </tr>`;
+                            tripsList.append(tableRow);
+                        });
+                    },
+                    error: function(error) {
+                        console.error('Error fetching trips:', error);
+                    }
+                });
+            }
+            
+            window.openModal = function(tripId) {
+                $.ajax({
+                    url: "{% url 'get_trip_details' %}",
+                    method: 'GET',
+                    data: { trip_id: tripId },
+                    success: function(trip) {
+                        $('#tripId').val(trip.id);
+                        $('#regNo').val(trip.vehicle); // Ensure vehicle registration number is correctly passed
+                        $('#driverName').val(trip.driver.full_name);
+                        $('#coDriverName').val(trip.co_driver.co_driver_name);
+                        $('#driverExpense').val('');
+                        $('#coDriverExpense').val('');
+                        $('#expenseModal').modal('show');
+                    },
+                    error: function(error) {
+                        console.error('Error fetching trip details:', error);
+                    }
+                });
+            }
+            
+            window.saveExpenses = function() {
+                let tripId = $('#tripId').val();
+                let driverExpense = $('#driverExpense').val();
+                let coDriverExpense = $('#coDriverExpense').val();
+                
+                $.ajax({
+                    url: "{% url 'assign_expenses' %}",
+                    method: 'POST',
+                    data: {
+                        trip_id: tripId,
+                        driver_expense: driverExpense,
+                        co_driver_expense: coDriverExpense,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'  // Ensure CSRF token is included
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#expenseModal').modal('hide');
+                            alert('Expenses assigned successfully');
+                            fetchTrips();  // Refresh the list after saving
+                        } else {
+                            alert('Error assigning expenses');
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error saving expenses:', error);
+                    }
+                });
+            }
+        });
+        
+    </script>
 </body>
 </html>

@@ -4,3 +4,4 @@ from DTMS.models import*
 # Register your models here.
 admin.site.register(Trip)
 admin.site.register(LoadTrip)
+admin.site.register(Expense)
