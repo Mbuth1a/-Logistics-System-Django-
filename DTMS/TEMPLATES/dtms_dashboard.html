@@ -10,9 +10,9 @@
   <link rel="stylesheet" href="{% static 'dtms_dashboard.css' %}">
   <style>
     .body {
-        background-color: #333; /* Dark grey background */
-        color: #fff; /* White text color */
-      }
+      background-color: #333; /* Dark grey background */
+      color: #fff; /* White text color */
+    }
 
     .nav-link {
       transition: transform 0.2s ease;
@@ -39,7 +39,7 @@
     }
 
     .navbar {
-      padding:  20px; /* Add some padding to the navbar */
+      padding: 20px; /* Add some padding to the navbar */
       margin-left: 10px; /* Adjust margin to match the sidebar width */
       background-color: #333; /* Dark grey background for navbar */
       color: #333; /* White text color for navbar */
@@ -73,22 +73,26 @@
     .card .text-white-50 {
       color: rgba(255, 255, 255, 0.5); /* 50% white text color */
     }
+
+    /* Style the sub-menu */
+    .sub-menu {
+      display: none; /* Hide the sub-menu by default */
+    }
+
+    .sub-menu .nav-link {
+      padding-left: 30px; /* Add some padding to align sub-menu items */
+    }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <h2>DANCO LTD Logistics System</h2>
     <ul class="nav flex-column">
-      {% comment %} <li class="nav-item">
-        <a class="nav-link" href="#dashboard">
-          <i class="fas fa-tachometer-alt"></i> DASHBOARD
-        </a>
-      </li> {% endcomment %}
       <li class="nav-item">
         <a class="nav-link" id="trips-link" href="#">
-          <i class="fas fa-route"></i> TRIPS
+          <i class="fas fa-route"></i> TRIPS <i class="fas fa-plus" id="trips-plus"></i>
         </a>
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="trips-submenu">
           <li class="nav-item">
             <a class="nav-link" href="{% url 'create_trip' %}">
               <i class="fas fa-plus"></i> Create Trip
@@ -114,7 +118,7 @@
       </li>
 
       <li class="nav-item">
-        <a class="nav-link" id="fuel-link" href="#">
+        <a class="nav-link" id="fuel-link" href="{% url 'fuel_records'%}">
           <i class="fas fa-gas-pump"></i> FUEL
         </a>
       </li>
@@ -178,20 +182,25 @@
           </div>
         </div>
       </div>
-
-      {% comment %} <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card bg-info text-white shadow">
-          <div class="card-body">
-            <i class="fas fa-map-marker-alt"></i> Tracking
-            <div class="text-white-50">Total: {{ total_tracking }}</div>
-          </div>
-        </div>
-      </div> {% endcomment %}
     </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    document.getElementById('trips-link').addEventListener('click', function() {
+      var submenu = document.getElementById('trips-submenu');
+      if (submenu.style.display === 'block') {
+        submenu.style.display = 'none';
+        document.getElementById('trips-plus').classList.remove('fa-minus');
+        document.getElementById('trips-plus').classList.add('fa-plus');
+      } else {
+        submenu.style.display = 'block';
+        document.getElementById('trips-plus').classList.remove('fa-plus');
+        document.getElementById('trips-plus').classList.add('fa-minus');
+      }
+    });
+  </script>
 </body>
 </html>

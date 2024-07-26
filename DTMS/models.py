@@ -56,3 +56,15 @@ class Expenses(models.Model):
 
     def __str__(self):
         return f"Trip ID: {self.trip.id}, Driver Expense: {self.driver_expense}, Co-Driver Expense: {self.co_driver_expense}"
+    
+    
+class Fuel(models.Model):
+    trip = models.OneToOneField(Trip, on_delete=models.CASCADE)
+    fuel_consumed = models.DecimalField(max_digits=10, decimal_places=2)  # Fuel consumed in liters or another unit
+    created_at = models.DateTimeField(default=timezone.now)
+    date = models.DateField(default=timezone.now)
+    
+
+    
+    def __str__(self):
+        return f"Fuel record for Trip ID: {self.trip.id} - {self.fuel_consumed} liters"   

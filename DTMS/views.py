@@ -168,3 +168,47 @@ def fetch_assigned_expenses(request):
         })
 
     return JsonResponse(expenses_data, safe=False)
+
+
+def fuel(request):
+    trips = Trip.objects.filter(fuel__isnull=True)  # Filter trips with no fuel record
+    return render(request, 'fuel_records.html', {'trips': trips})
+
+def save_fuel(request):
+    if request.method == 'POST':
+        trip_id = request.POST.get('trip_id')
+        fuel_consumed = request.POST.get('fuel_consumed')
+        
+        try:
+            trip = Trip.objects.get(id=trip_id)
+            Fuel.objects.create(trip=trip, fuel_consumed=fuel_consumed, date=request.POST.get('date'))
+            return JsonResponse({'success': True})
+        except Trip.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Trip not found'})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+# Fetching fuel record
+def fetch_fuel_records(request):
+    trip_id = request.GET.get('trip_id')
+    try:
+        trip = Trip.objects.get(id=trip_id)
+        trip_data = {
+            'id': trip.id,
+            'date': trip.date.isoformat(),
+            'time': trip.time.isoformat(),
+            'day': trip.day,
+            'description': trip.description,
+            'driver': {
+                'full_name': trip.driver.full_name,
+            },
+            'co_driver': {
+                'co_driver_name': trip.co_driver.co_driver_name,
+            },
+            'vehicle': trip.vehicle.registration_number,  # Correct field reference
+            'from_location': trip.from_location,
+            'to_location': trip.to_location,
+            'est_distance': trip.est_distance,
+        }
+        return JsonResponse(trip_data)
+    except Trip.DoesNotExist:
+        return JsonResponse({'error': 'Trip not found'}, status=404)

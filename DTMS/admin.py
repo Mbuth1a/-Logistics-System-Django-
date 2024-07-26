@@ -5,3 +5,4 @@ from DTMS.models import*
 admin.site.register(Trip)
 admin.site.register(LoadTrip)
 admin.site.register(Expenses)
+admin.site.register(Fuel)
