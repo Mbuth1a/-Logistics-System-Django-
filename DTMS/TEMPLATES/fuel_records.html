@@ -30,13 +30,36 @@
         }
         .text-red { color: red; }
         .bg-red { background-color: red; color: white; }
-        .toggle-card {
+        .card-header {
             cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .toggle-card:hover {
-            background-color: orange;
+            background-color: #343a40;
             color: white;
+            border: none;
+        }
+        .card-header:hover {
+            background-color: orange; /* Hover color for card header */
+            color: white; /* Text color for card header on hover */
+        }
+        .btn-primary:hover {
+            background-color: orange;
+            border-color: orange;
+        }
+        .monthly-consumption {
+            margin-top: 20px;
+        }
+        .vehicle-tab {
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+            background-color: #f8f9fa;
+        }
+        .vehicle-tab:hover {
+            background-color: #ffe5b4; /* Light orange on hover */
+        }
+        .collapse {
+            transition: height 0.35s ease;
         }
     </style>
 </head>
@@ -64,24 +87,19 @@
                 {% for trip in trips %}
                 <tr data-id="{{ trip.id }}">
                     <td>{{ trip.id }}</td>
-                    <td>{{ trip.vehicle.registration_number }}</td>
+                    <td>{{ trip.vehicle.vehicle_regno }}</td>
                     <td>{{ trip.date }}</td>
                     <td>{{ trip.from_location }}</td>
                     <td>{{ trip.to_location }}</td>
-                    <td><button class="btn bg-red" onclick="openFuelModal({{ trip.id }})">Fuel Used</button></td>
+                    <td><button class="btn bg-red" onclick="openFuelModal({{ trip.id }}, '{{ trip.vehicle.vehicle_regno }}', '{{ trip.date }}', '{{ trip.from_location }}', '{{ trip.to_location }}')">Fuel Used</button></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <!-- Fuel Consumption Toggle Card -->
-        <div class="card toggle-card mt-4">
-            <div class="card-body">
-                <h4 class="card-title text-center">Fuel Consumption Records</h4>
-                <div id="fuelRecords">
-                    <!-- Fuel records will be dynamically inserted here -->
-                </div>
-            </div>
+        <!-- Fuel Consumption Cards -->
+        <div id="fuelCards" class="mt-4">
+            <!-- Fuel cards will be dynamically inserted here -->
         </div>
     </div>
 
@@ -99,12 +117,24 @@
                     <form id="fuelForm">
                         <input type="hidden" id="tripId">
                         <div class="form-group">
-                            <label for="fuelConsumed">Fuel Consumed (liters)</label>
-                            <input type="number" class="form-control" id="fuelConsumed" min="0" step="0.01">
+                            <label for="vehicle">Vehicle</label>
+                            <input type="text" class="form-control" id="vehicle" readonly>
                         </div>
                         <div class="form-group">
-                            <label for="fuelDate">Date</label>
-                            <input type="date" class="form-control" id="fuelDate">
+                            <label for="tripDate">Date</label>
+                            <input type="text" class="form-control" id="tripDate" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="fromLocation">From</label>
+                            <input type="text" class="form-control" id="fromLocation" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="toLocation">To</label>
+                            <input type="text" class="form-control" id="toLocation" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="fuelConsumed">Fuel Consumed (liters)</label>
+                            <input type="number" class="form-control" id="fuelConsumed" min="0" step="0.01">
                         </div>
                     </form>
                 </div>
@@ -119,19 +149,30 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
+        $(document).ready(function() {
+            fetchFuelRecords();
+
+            $('#fuelCards').on('click', '.card-header', function() {
+                $(this).next('.card-body').collapse('toggle');
+            });
+        });
+
         function goBack() {
             window.location.href = '{% url "dtms_dashboard" %}';
         }
 
-        function openFuelModal(tripId) {
+        function openFuelModal(tripId, vehicle, date, from, to) {
             $('#tripId').val(tripId);
+            $('#vehicle').val(vehicle);
+            $('#tripDate').val(date);
+            $('#fromLocation').val(from);
+            $('#toLocation').val(to);
             $('#fuelModal').modal('show');
         }
 
         function saveFuel() {
             let tripId = $('#tripId').val();
             let fuelConsumed = $('#fuelConsumed').val();
-            let fuelDate = $('#fuelDate').val();
 
             $.ajax({
                 url: "{% url 'save_fuel' %}",
@@ -139,7 +180,6 @@
                 data: {
                     trip_id: tripId,
                     fuel_consumed: fuelConsumed,
-                    date: fuelDate,
                     csrfmiddlewaretoken: '{{ csrf_token }}'
                 },
                 success: function(response) {
@@ -159,8 +199,8 @@
                 url: "{% url 'fetch_fuel_records' %}",
                 method: 'GET',
                 success: function(response) {
-                    let fuelRecords = $('#fuelRecords');
-                    fuelRecords.empty();
+                    let fuelCards = $('#fuelCards');
+                    fuelCards.empty();
                     let groupedData = {};
 
                     response.forEach(record => {
@@ -171,22 +211,50 @@
                     });
 
                     for (const [vehicle, records] of Object.entries(groupedData)) {
-                        fuelRecords.append(`<h5>${vehicle}</h5>`);
-                        let table = '<table class="table table-striped"><thead><tr><th>Trip ID</th><th>Date</th><th>Fuel Consumed</th></tr></thead><tbody>';
+                        let card = `
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5 class="card-title">${vehicle}</h5>
+                                </div>
+                                <div class="card-body collapse">
+                                    <div class="list-group">
+                        `;
                         records.forEach(record => {
-                            table += `<tr><td>${record.id}</td><td>${record.date}</td><td>${record.fuel_consumed}</td></tr>`;
+                            card += `
+                                <a href="#" class="list-group-item vehicle-tab">
+                                    <div>Date: ${record.date}</div>
+                                    <div>Fuel Consumed: ${record.fuel_consumed} liters</div>
+                                </a>
+                            `;
                         });
-                        table += '</tbody></table>';
-                        fuelRecords.append(table);
+                        card += `
+                                    </div>
+                                    <div class="monthly-consumption">
+                                        <h6>Monthly Consumption</h6>
+                                        <div id="monthlyConsumption-${vehicle}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        fuelCards.append(card);
+                        fetchMonthlyConsumption(vehicle);
                     }
                 }
             });
         }
 
-        $(document).ready(function() {
-            fetchFuelRecords();
-        });
+        function fetchMonthlyConsumption(vehicle) {
+            $.ajax({
+                url: "{% url 'fetch_monthly_consumption' %}",
+                method: 'GET',
+                data: { vehicle: vehicle },
+                success: function(response) {
+                    let monthlyConsumptionDiv = $(`#monthlyConsumption-${vehicle}`);
+                    let totalConsumption = response.total_consumption;
+                    monthlyConsumptionDiv.html(`<p>Total Monthly Consumption: ${totalConsumption} liters</p>`);
+                }
+            });
+        }
     </script>
 </body>
 </html>
-                    

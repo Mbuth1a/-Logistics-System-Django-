@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.http import JsonResponse
 from DTMS.forms import*
+from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
-from django.contrib import messages 
-from decimal import Decimal, InvalidOperation
+from django.contrib import messages
+import datetime
+from django.views.decorators.http import require_GET
 # Create your views here.
 def dtms_dashboard(request):
     return render(request, 'dtms_dashboard.html')
@@ -173,42 +175,48 @@ def fetch_assigned_expenses(request):
 def fuel(request):
     trips = Trip.objects.filter(fuel__isnull=True)  # Filter trips with no fuel record
     return render(request, 'fuel_records.html', {'trips': trips})
-
+# Saving of the fuel records to the database
 def save_fuel(request):
     if request.method == 'POST':
         trip_id = request.POST.get('trip_id')
         fuel_consumed = request.POST.get('fuel_consumed')
-        
-        try:
-            trip = Trip.objects.get(id=trip_id)
-            Fuel.objects.create(trip=trip, fuel_consumed=fuel_consumed, date=request.POST.get('date'))
-            return JsonResponse({'success': True})
-        except Trip.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Trip not found'})
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
 
-# Fetching fuel record
+        trip = get_object_or_404(Trip, id=trip_id)
+
+        # Save fuel consumption record
+        Fuel.objects.create(trip=trip, fuel_consumed=fuel_consumed, date=trip.date)
+
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
 def fetch_fuel_records(request):
-    trip_id = request.GET.get('trip_id')
+    records = Fuel.objects.values('trip__vehicle__vehicle_regno', 'trip_id', 'fuel_consumed', 'date')
+    data = [{'vehicle': record['trip__vehicle__vehicle_regno'], 'id': record['trip_id'], 'fuel_consumed': record['fuel_consumed'], 'date': record['date']} for record in records]
+    return JsonResponse(data, safe=False)
+# Overall reports of monthly consumption per vehicle
+@require_GET
+def fetch_monthly_consumption(request):
+    vehicle_id = request.GET.get('vehicle_id')
+    month = request.GET.get('month')  # Expected format: 'YYYY-MM'
+
+    if not vehicle_id or not month:
+        return JsonResponse({'error': 'Vehicle ID and month are required'}, status=400)
+
     try:
-        trip = Trip.objects.get(id=trip_id)
-        trip_data = {
-            'id': trip.id,
-            'date': trip.date.isoformat(),
-            'time': trip.time.isoformat(),
-            'day': trip.day,
-            'description': trip.description,
-            'driver': {
-                'full_name': trip.driver.full_name,
-            },
-            'co_driver': {
-                'co_driver_name': trip.co_driver.co_driver_name,
-            },
-            'vehicle': trip.vehicle.registration_number,  # Correct field reference
-            'from_location': trip.from_location,
-            'to_location': trip.to_location,
-            'est_distance': trip.est_distance,
-        }
-        return JsonResponse(trip_data)
+        # Validate the month format
+        year, month = map(int, month.split('-'))
+        start_of_month = datetime.date(year, month, 1)
+        end_of_month = (start_of_month.replace(day=28) + datetime.timedelta(days=4)).replace(day=1) - datetime.timedelta(days=1)
+    except ValueError:
+        return JsonResponse({'error': 'Invalid month format. Expected YYYY-MM'}, status=400)
+
+    try:
+        # Get trips for the specified vehicle and month
+        trips = Trip.objects.filter(vehicle_id=vehicle_id, date__range=[start_of_month, end_of_month])
+        fuel_records = Fuel.objects.filter(trip__in=trips).aggregate(total_consumption=Sum('fuel_consumed'))
+        total_consumption = fuel_records['total_consumption'] or 0
     except Trip.DoesNotExist:
-        return JsonResponse({'error': 'Trip not found'}, status=404)
+        return JsonResponse({'error': 'No trips found for the specified vehicle and month'}, status=404)
+
+    return JsonResponse({'total_consumption': total_consumption})

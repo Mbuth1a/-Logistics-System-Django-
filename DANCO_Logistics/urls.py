@@ -48,4 +48,5 @@ urlpatterns = [
     path('fuel_records/', views.fuel, name='fuel_records'),
     path('save_fuel/', views.save_fuel, name='save_fuel'),
     path('fetch_fuel_records/', views.fetch_fuel_records, name='fetch_fuel_records'),
+    path('fetch-monthly-consumption/', views.fetch_monthly_consumption, name='fetch_monthly_consumption'),
 ]
