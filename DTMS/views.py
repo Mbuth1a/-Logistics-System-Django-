@@ -220,3 +220,7 @@ def fetch_monthly_consumption(request):
         return JsonResponse({'error': 'No trips found for the specified vehicle and month'}, status=404)
 
     return JsonResponse({'total_consumption': total_consumption})
+
+def fetch_vehicle_list(request):
+    vehicles = Vehicle.objects.all().values_list('vehicle_regno', flat=True)
+    return JsonResponse(list(vehicles), safe=False)

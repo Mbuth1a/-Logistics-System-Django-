@@ -73,16 +73,7 @@
 
         <!-- Trips List -->
         <table class="table table-striped mt-4">
-            <thead>
-                <tr>
-                    <th>Trip ID</th>
-                    <th>Vehicle</th>
-                    <th>Date</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+           
             <tbody id="tripsList">
                 {% for trip in trips %}
                 <tr data-id="{{ trip.id }}">
