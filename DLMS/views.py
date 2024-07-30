@@ -3,13 +3,15 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
-from .forms import DriverForm,VehicleForm, CoDriverForm, ProductForm
+from .forms import DriverForm,VehicleForm, CoDriverForm, ProductForm,SignUpForm
 from .models import Driver, Vehicle, CoDriver, Product, Product
 from django.contrib import messages
-from django.contrib.auth import login as auth_login
+from django.contrib.auth import authenticate, login as auth_login
 from .models import CustomUser
-
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required
 # Create your views here.
+@login_required
 def dashboard(request):
     total_drivers = Driver.objects.count()
     total_vehicles = Vehicle.objects.count()
@@ -275,8 +277,34 @@ def get_products(request):
 # SIGN UP VIEW
 
 def login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None and user.is_active:
+            auth_login(request, user)
+            if user.role == 'ADMIN':
+                return redirect('/dashboard/')
+            elif user.role == 'USER':
+                return redirect('/dtms_dashboard/')
+            else:
+                return redirect('/login/')
+        else:
+            return render(request, 'login.html', {'error': 'Invalid credentials'})
     return render(request, 'login.html')
-
-
 def signup(request):
-    return render(request, 'signup.html')
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)  # Correct usage of login function
+            if user.role == 'ADMIN':
+                return redirect('/dashboard/')
+            elif user.role == "USER":
+                return redirect('/dtms_dashboard/')
+            else:
+                return redirect('/login/')
+    else:
+        form = SignUpForm()
+    return render(request, 'signup.html', {'form': form})

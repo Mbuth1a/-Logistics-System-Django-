@@ -1,5 +1,12 @@
 from django.db import models
+from django.contrib import admin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
+
+from .models import*
+
+
 class Driver(models.Model):
     full_name = models.CharField(max_length=100)
     employee_number = models.CharField(max_length=100)
@@ -43,11 +50,17 @@ class Product(models.Model):
 
 
 #  SIGNUP AND LOGIN MODELS
- 
+
+
+
+
 class CustomUserManager(BaseUserManager):
-    def create_user(self, staff_no, first_name, second_name, password, role, department, **extra_fields):
+    def create_user(self, staff_no, first_name, second_name, password, department, role, **extra_fields):
         if not staff_no:
-            raise ValueError('The Staff No field must be set')
+            raise ValueError('The Staff No must be set')
+        if not password:
+            raise ValueError('The Password must be set')
+
         user = self.model(
             staff_no=staff_no,
             first_name=first_name,
@@ -57,24 +70,41 @@ class CustomUserManager(BaseUserManager):
             **extra_fields
         )
         user.set_password(password)
+        user.is_superuser = (role == 'ADMIN')
+        user.is_staff = (role == 'ADMIN')
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, staff_no, first_name, second_name, password, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        return self.create_user(staff_no, first_name, second_name, password, role='ADMIN', **extra_fields)
+    def create_superuser(self, staff_no, first_name, second_name, password, department, **extra_fields):
+        extra_fields.setdefault('role', 'ADMIN')
+        return self.create_user(staff_no, first_name, second_name, password, department, **extra_fields)
 
 class CustomUser(AbstractBaseUser):
-    staff_no = models.CharField(max_length=255, unique=True)
-    first_name = models.CharField(max_length=30)
-    second_name = models.CharField(max_length=30)
-    department = models.CharField(max_length=255)
+    staff_no = models.CharField(max_length=30, unique=True)
+    first_name = models.CharField(max_length=100)
+    second_name = models.CharField(max_length=100)
+    department = models.CharField(max_length=100)
     role = models.CharField(max_length=10, choices=[('ADMIN', 'Admin'), ('USER', 'User')])
     is_active = models.BooleanField(default=True)
-    
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'staff_no'
-    REQUIRED_FIELDS = ['first_name', 'second_name', 'department', 'role']    
-    
+    REQUIRED_FIELDS = ['first_name', 'second_name', 'department']
+
+    def __str__(self):
+        return self.staff_no
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
+
+    def get_full_name(self):
+        return f"{self.first_name} {self.second_name}"
+
+    def get_short_name(self):
+        return self.first_name

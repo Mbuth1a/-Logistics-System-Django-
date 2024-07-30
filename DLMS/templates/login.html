@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DANCO -LMS LOGIN Page</title>
+    <title>DANCO-LOGISTICS | Login</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
+            background: url('/media/b.jpg') no-repeat center center fixed;
+            background-size: cover;
         }
         
         .container {
@@ -17,99 +20,96 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: url('media/b.jpg') no-repeat center center fixed;
-            background-size: cover;
-        }
-        
-        .form-container {
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        
-        h1 {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin: 10px 0 5px;
-        }
-        
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        button {
-            background-color: #007BFF;
-            color: #fff;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        button:hover {
-            background-color: orange;
-        }
-        
-        .background-image {
-            background: url('your-background-image.jpg') no-repeat center center fixed;
-            background-size: cover;
-            height: 100vh;
         }
         
         .form-container {
             background-color: rgba(255, 255, 255, 0.9);
             padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            position: relative;
         }
-
+        
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .btn-primary {
+            background-color: #007BFF;
+            border-color: #007BFF;
+        }
+        
         .btn-primary:hover {
-            background-color: orange;
+            background-color: #0056b3;
+            border-color: #004b9b;
+        }
+        
+        .alert {
+            margin-top: 20px;
+        }
+        
+        .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #007BFF;
+        }
+        
+        .password-container {
+            position: relative;
         }
     </style>
 </head>
 <body>
-    <div class="background-image d-flex align-items-center justify-content-center">
-        <div class="form-container col-md-6 col-lg-4">
-            <h1 class="text-center mb-4"> DANCO-LMS |LOGIN|</h1>
-            <form>
+    <div class="container">
+        <div class="form-container">
+            <h1 class="text-center mb-4">Login</h1>
+            <form method="post">
+                {% csrf_token %}
                 <div class="form-group">
-                    <label for="staffNo">Staff No:</label>
-                    <input type="text" class="form-control" id="staffNo" name="staffNo" required>
+                    <label for="username">Staff No:</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter Staff No" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group password-container">
                     <label for="password">Password:</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div> 
-                <div class="d-flex justify-content-between align-items-center">
-                    <button type="submit" class="btn btn-primary">LOGIN</button>
-                    <a href="forgot_password.html" class="btn btn-primary">Forgot Password?</a>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
+                    <span class="eye-icon" id="togglePassword">
+                        <i class="fa fa-eye"></i>
+                    </span>
                 </div>
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                {% if error %}
+                <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% endif %}
             </form>
-            <div class="text-center mt-3">
-                <p><b><i>Don't have an account?</i> <a href="#" id="signup-link">SIGN UP</a></b></p>
-            </div>
         </div>
     </div>
-    
+
+    <!-- Scripts -->
+    <script>
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            var passwordField = document.getElementById('password');
+            var type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            var icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        document.getElementById('signup-link').onclick = function(event) {
-            event.preventDefault();
-            window.location.href = '/signup/';
-        };
-    </script>
 </body>
 </html>

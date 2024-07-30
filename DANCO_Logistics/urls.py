@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.urls import path
-
+from django.conf import settings
 from DLMS.views  import* 
-
+from django.conf.urls.static import static
 # from DTMS import views
 from DTMS import views
 
@@ -54,3 +54,7 @@ urlpatterns = [
     path('fetch_vehicle_list/', views.fetch_vehicle_list, name='fetch_vehicle_list'),
   
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
