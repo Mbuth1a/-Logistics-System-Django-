@@ -15,6 +15,23 @@
 
     .nav-link:hover {
       transform: translateX(10px);
+      background-color: #ff8c00; /* Orange hover background */
+      color: #fff; /* White hover text color */
+    }
+
+    .sub-menu {
+      display: none;
+      padding-left: 20px;
+    }
+
+    .nav-item .plus-sign {
+      margin-left: 10px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 400px;
+      width: 100%;
     }
   </style>
 </head>
@@ -28,10 +45,10 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="drivers-link" href="{% url 'add_driver' %}">
-          <i class="fas fa-user"></i> DRIVERS
+        <a class="nav-link" id="drivers-link" href="#" onclick="toggleSubMenu('drivers-sub-menu')">
+          <i class="fas fa-user"></i> DRIVERS <i class="fas fa-plus plus-sign"></i>
         </a>
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="drivers-sub-menu">
           <li class="nav-item">
             <a class="nav-link" href="{% url 'add_driver' %}">
               <i class="fas fa-user-plus"></i> Add Driver
@@ -45,10 +62,10 @@
         </ul>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="drivers-link" href="#">
-          <i class="fas fa-user"></i> CO-DRIVERS
+        <a class="nav-link" id="codrivers-link" href="#" onclick="toggleSubMenu('codrivers-sub-menu')">
+          <i class="fas fa-user"></i> CO-DRIVERS <i class="fas fa-plus plus-sign"></i>
         </a>
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="codrivers-sub-menu">
           <li class="nav-item">
             <a class="nav-link" href="{% url 'add_co_driver' %}">
               <i class="fas fa-user-plus"></i> Add Co-Driver
@@ -62,10 +79,10 @@
         </ul>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="Vehicle-link" href="#">
-          <i class="fas fa-user"></i> VEHICLES
+        <a class="nav-link" id="vehicles-link" href="#" onclick="toggleSubMenu('vehicles-sub-menu')">
+          <i class="fas fa-user"></i> VEHICLES <i class="fas fa-plus plus-sign"></i>
         </a>
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="vehicles-sub-menu">
           <li class="nav-item">
             <a class="nav-link" href="{% url 'add_vehicle' %}">
               <i class="fas fa-user-plus"></i> Add Vehicle
@@ -78,13 +95,11 @@
           </li>
         </ul>
       </li>
-
       <li class="nav-item">
         <a class="nav-link" href="{% url 'inventory' %}">
           <i class="fas fa-store"></i> INVENTORY
         </a>
       </li>
-
       <li class="nav-item">
         <a class="nav-link" href="{% url 'reports' %}">
           <i class="fas fa-book"></i> REPORTS
@@ -145,12 +160,14 @@
     <!-- Add the canvas element for the bar chart -->
     <div class="row mt-4">
       <div class="col-12">
-        <canvas id="myBarChart"></canvas>
+        <div class="chart-container">
+          <canvas id="myBarChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -179,6 +196,8 @@
         }]
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
           y: {
             beginAtZero: true
@@ -186,6 +205,15 @@
         }
       }
     });
+
+    function toggleSubMenu(menuId) {
+      var subMenu = document.getElementById(menuId);
+      if (subMenu.style.display === "block") {
+        subMenu.style.display = "none";
+      } else {
+        subMenu.style.display = "block";
+      }
+    }
   </script>
 </body>
 </html>

@@ -61,6 +61,11 @@
         .collapse {
             transition: height 0.35s ease;
         }
+        .vehicle-details {
+            color: black;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -88,9 +93,16 @@
             </tbody>
         </table>
 
-        <!-- Fuel Consumption Cards -->
-        <div id="fuelCards" class="mt-4">
-            <!-- Fuel cards will be dynamically inserted here -->
+        <!-- Fuel Records Toggle Card -->
+        <div class="card mt-4">
+            <div class="card-header" onclick="toggleFuelRecords()">
+                <h5 class="card-title">FUEL RECORDS</h5>
+            </div>
+            <div class="card-body collapse" id="fuelRecords">
+                <div id="fuelCards" class="mt-4">
+                    <!-- Fuel cards will be dynamically inserted here -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -150,6 +162,10 @@
 
         function goBack() {
             window.location.href = '{% url "dtms_dashboard" %}';
+        }
+
+        function toggleFuelRecords() {
+            $('#fuelRecords').collapse('toggle');
         }
 
         function openFuelModal(tripId, vehicle, date, from, to) {
@@ -213,8 +229,8 @@
                         records.forEach(record => {
                             card += `
                                 <a href="#" class="list-group-item vehicle-tab">
-                                    <div>Date: ${record.date}</div>
-                                    <div>Fuel Consumed: ${record.fuel_consumed} liters</div>
+                                    <div class="vehicle-details">Date: ${record.date}</div>
+                                    <div class="vehicle-details">Fuel Consumed: ${record.fuel_consumed} liters</div>
                                 </a>
                             `;
                         });
@@ -241,8 +257,8 @@
                 data: { vehicle: vehicle },
                 success: function(response) {
                     let monthlyConsumptionDiv = $(`#monthlyConsumption-${vehicle}`);
-                    let totalConsumption = response.total_consumption;
-                    monthlyConsumptionDiv.html(`<p>Total Monthly Consumption: ${totalConsumption} liters</p>`);
+                    let totalConsumption = response.total_consumption || 0;
+                    monthlyConsumptionDiv.html(`Total Fuel Consumed: ${totalConsumption} liters`);
                 }
             });
         }

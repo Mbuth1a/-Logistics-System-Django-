@@ -8,27 +8,26 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   {% load static %}
   <link rel="stylesheet" href="{% static 'reports.css' %}"> <!-- Include the new theme CSS file -->
-  
 </head>
 <body>
   <div class="sidebar">
     <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
-</div>
-  <div class="container mt-1 col-md-10">
+  </div>
+  <div class="container mt-1 col-md-10 main-content">
     <h1 class="text-center">
         Reports
         <i class="fas fa-file-alt ml-2"></i>
-      </h1>
+    </h1>
 
     <!-- Drivers Section -->
     <div class="card">
       <div class="card-header" id="driversHeading">
         <h2 class="mb-0">
-            <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#driversCollapse" aria-expanded="true" aria-controls="driversCollapse">
-                DRIVERS
-                <i class="fas fa-users ml-1"></i>
-              </button>
-              
+          <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#driversCollapse" aria-expanded="true" aria-controls="driversCollapse">
+            DRIVERS
+            <i class="fas fa-users ml-1"></i>
+          </button>
+          
           <div class="float-right no-print">
             <button class="btn btn-primary mr-2 btn-print" onclick="printSection('driversCollapse')">
               <i class="fas fa-print"></i> Print
@@ -55,7 +54,7 @@
             <tbody>
               {% for driver in drivers %}
               <tr>
-                <td>{{ driver.id }}</td>
+                <td>{{ forloop.counter }}</td> <!-- Start numbering from 1 -->
                 <td>{{ driver.employee_number }}</td>
                 <td>{{ driver.full_name }}</td>
                 <td>{{ driver.license_number }}</td>
@@ -73,11 +72,11 @@
     <div class="card mt-3">
       <div class="card-header" id="vehiclesHeading">
         <h2 class="mb-0">
-            <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#vehiclesCollapse" aria-expanded="true" aria-controls="vehiclesCollapse">
-                VEHICLES
-                <i class="fas fa-truck ml-1"></i>
-              </button>
-              
+          <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#vehiclesCollapse" aria-expanded="true" aria-controls="vehiclesCollapse">
+            VEHICLES
+            <i class="fas fa-truck ml-1"></i>
+          </button>
+          
           <div class="float-right no-print">
             <button class="btn btn-primary mr-2 btn-print" onclick="printSection('vehiclesCollapse')">
               <i class="fas fa-print"></i> Print
@@ -104,7 +103,7 @@
             <tbody>
               {% for vehicle in vehicles %}
               <tr>
-                <td>{{ vehicle.id }}</td>
+                <td>{{ forloop.counter }}</td> <!-- Start numbering from 1 -->
                 <td>{{ vehicle.vehicle_regno }}</td>
                 <td>{{ vehicle.vehicle_model }}</td>
                 <td>{{ vehicle.vehicle_type }}</td>
@@ -122,11 +121,11 @@
     <div class="card mt-3">
       <div class="card-header" id="coDriversHeading">
         <h2 class="mb-0">
-            <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#coDriversCollapse" aria-expanded="true" aria-controls="coDriversCollapse">
-                CO-DRIVERS
-                <i class="fas fa-users ml-1"></i>
-              </button>
-              
+          <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#coDriversCollapse" aria-expanded="true" aria-controls="coDriversCollapse">
+            CO-DRIVERS
+            <i class="fas fa-users ml-1"></i>
+          </button>
+          
           <div class="float-right no-print">
             <button class="btn btn-primary mr-2 btn-print" onclick="printSection('coDriversCollapse')">
               <i class="fas fa-print"></i> Print
@@ -152,7 +151,7 @@
             <tbody>
               {% for co_driver in co_drivers %}
               <tr>
-                <td>{{ forloop.counter }}</td> <!-- Use forloop.counter to start from 1 -->
+                <td>{{ forloop.counter }}</td> <!-- Start numbering from 1 -->
                 <td>{{ co_driver.employee_number }}</td>
                 <td>{{ co_driver.co_driver_name }}</td>
                 <td>{{ co_driver.phone_number }}</td>
@@ -181,15 +180,15 @@
       var csv = '';
       var fileName = '';
       if (section === 'drivers') {
-        csv = 'ID,Username,First Name,Last Name,License Number,Phone Number,Email\n';
+        csv = 'ID,Employee Number,Full Name,License Number,Phone Number,Email\n';
         {% for driver in drivers %}
-        csv += '{{ driver.id }},{{ driver.employee_number }},{{ driver.full_name }},{{ driver.license_number }},{{ driver.phone_number }},{{ driver.email }}\n';
+        csv += '{{ forloop.counter }},{{ driver.employee_number }},{{ driver.full_name }},{{ driver.license_number }},{{ driver.phone_number }},{{ driver.email }}\n';
         {% endfor %}
         fileName = 'drivers.csv';
       } else if (section === 'vehicles') {
         csv = 'ID,Vehicle Registration No.,Model,Vehicle Type,Engine Number,Capacity\n';
         {% for vehicle in vehicles %}
-        csv += '{{ vehicle.id }},{{ vehicle.vehicle_regno }},{{ vehicle.vehicle_model }},{{ vehicle.vehicle_type }},{{ vehicle.engine_number }},{{ vehicle.capacity }}\n';
+        csv += '{{ forloop.counter }},{{ vehicle.vehicle_regno }},{{ vehicle.vehicle_model }},{{ vehicle.vehicle_type }},{{ vehicle.engine_number }},{{ vehicle.capacity }}\n';
         {% endfor %}
         fileName = 'vehicles.csv';
       } else if (section === 'co_drivers') {
@@ -206,9 +205,10 @@
       hiddenElement.download = fileName;
       hiddenElement.click();
     }
+
     function goToDashboard() {
       window.location.href = "{% url 'dashboard' %}";
-  }
+    }
   </script>
 </body>
 </html>

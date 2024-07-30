@@ -1,111 +1,112 @@
-/* reports-theme.css */
-
-/* Body background and text color */
 body {
-    background-color: #f8f9fa; /* Grey background */
-    color: #343a40; /* Dark grey text */
-  }
-  
-  /* Container background */
-  .container {
-    background-color: #ffffff; /* White container background */
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Light shadow for container */
-  }
-  
-  /* Header styles */
-  h1 {
-    color: #fd7e14; /* Orange header text */
-  }
-  
-  /* Card styles */
-  .card {
-    margin-top: 20px;
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Light shadow for cards */
-  }
-  
-  /* Card headers */
-  .card-header {
-    background-color: #fd7e14; /* Orange card header */
-    color: #ffffff; /* White text */
-    border-bottom: none; /* No border at the bottom */
-    border-radius: 8px 8px 0 0; /* Rounded corners on top */
-  }
-  
-  /* Table styles */
-  table {
-    width: 100%;
-    margin-bottom: 0;
-    background-color: #ffffff; /* White table background */
-    border-collapse: collapse;
-  }
-  
-  /* Table header */
-  table th {
-    background-color: #343a40; /* Dark grey header background */
-    color: #ffffff; /* White text */
-  }
-  
-  /* Table striped rows */
-  table tbody tr:nth-child(odd) {
-    background-color: #f8f9fa; /* Light grey alternate row background */
-  }
-  
-  /* Print button styles */
-  .btn-print {
-    background-color: #007bff; /* Blue print button */
-    color: #ffffff; /* White text */
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-  }
-  
-  /* Download button styles */
-  .btn-download {
-    background-color: #28a745; /* Green download button */
-    color: #ffffff; /* White text */
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-  }
-  
-  @media print {
-    .no-print {
-      display: none;
-    }
-  }
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 200px;
-    height: 100%;
-    background-color: #343a40;
-    padding-top: 20px;
+  background-color: #f7f7f7;
+  color: #333;
+  margin: 0; /* Ensure no extra margins are added */
+  padding: 0; /* Ensure no extra padding is added */
 }
+
+h1 {
+  color: #ff6600;
+}
+
+.btn-primary {
+  background-color: #ff6600;
+  border-color: #ff6600;
+}
+
+.btn-primary:hover {
+  background-color: #e65c00;
+  border-color: #e65c00;
+}
+
+.table thead th {
+  background-color: #ff6600;
+  color: white;
+}
+
+.table tbody tr:hover {
+  background-color: #f2f2f2;
+}
+
+.input-group .btn-outline-secondary {
+  color: #ff6600;
+  border-color: #ff6600;
+}
+
+.input-group .btn-outline-secondary:hover {
+  color: white;
+  background-color: #ff6600;
+  border-color: #ff6600;
+}
+
+.modal-header {
+  background-color: #ff6600;
+  color: white;
+}
+
+.modal-content {
+  border-color: #ff6600;
+}
+
+.form-group label {
+  color: #333;
+}
+
+.form-control {
+  border-color: #ccc;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 100%;
+  background-color: #343a40;
+  padding-top: 20px;
+  z-index: 1000; /* Ensure sidebar is above content */
+  overflow-y: auto; /* Add scroll if needed */
+}
+
 .sidebar a {
-    color: #fff;
-    padding: 15px;
-    text-decoration: none;
-    display: block;
+  color: #fff;
+  padding: 15px;
+  text-decoration: none;
+  display: block;
 }
+
 .sidebar a:hover {
-    background-color: #ff8c00;
+  background-color: #ff8c00;
 }
+
 .main-content {
-    margin-left: 220px;
+  margin-left: 1000px; /* Ensure content is shifted to the right */
+  padding: 20px;
 }
+
 .back-button {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: #343a40;
-    color: #fff;
-    border: none;
-    cursor: pointer;
+  display: inline-block;
+  padding: 10px 15px;
+  background-color: #f3b006;
+  color: #f0e80ee0;
+  border: none;
+  cursor: pointer;
 }
+
 .back-button:hover {
-    background-color: #ff8c00;
+  background-color: #00ff9d;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 10px; /* Adjust padding for smaller screens */
+  }
+  
+  .main-content {
+    margin-left: 0; /* Remove margin for smaller screens */
+    padding: 10px; /* Adjust padding for smaller screens */
+  }
 }

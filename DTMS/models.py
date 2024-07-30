@@ -2,6 +2,7 @@ from django.db import models
 from DLMS.models import*
 from django.utils import timezone
 from decimal import Decimal
+
 # Create your models here.
 class Trip(models.Model):
     date = models.DateField()

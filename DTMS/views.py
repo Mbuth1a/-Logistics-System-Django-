@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 import datetime
 from django.views.decorators.http import require_GET
+
 # Create your views here.
 def dtms_dashboard(request):
     return render(request, 'dtms_dashboard.html')

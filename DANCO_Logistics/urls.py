@@ -9,6 +9,8 @@ from DTMS import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('login/', login, name='login'),
+    path('signup/', signup, name='signup'),
     path('dashboard/',dashboard, name='dashboard'),
     path('dtms_dashboard/',views.dtms_dashboard, name='dtms_dashboard'),
     # Drivers
@@ -50,4 +52,5 @@ urlpatterns = [
     path('fetch_fuel_records/', views.fetch_fuel_records, name='fetch_fuel_records'),
     path('fetch-monthly-consumption/', views.fetch_monthly_consumption, name='fetch_monthly_consumption'),
     path('fetch_vehicle_list/', views.fetch_vehicle_list, name='fetch_vehicle_list'),
+  
 ]

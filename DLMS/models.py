@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 class Driver(models.Model):
     full_name = models.CharField(max_length=100)
     employee_number = models.CharField(max_length=100)
@@ -39,4 +39,42 @@ class Product(models.Model):
 
     def __str__(self):
         return f"({self.stock_code}) ({self.product})  ({self.description})  ({self.unit_of_measure})  ({self.weight_per_metre})"
+    
+
+
+#  SIGNUP AND LOGIN MODELS
+ 
+class CustomUserManager(BaseUserManager):
+    def create_user(self, staff_no, first_name, second_name, password, role, department, **extra_fields):
+        if not staff_no:
+            raise ValueError('The Staff No field must be set')
+        user = self.model(
+            staff_no=staff_no,
+            first_name=first_name,
+            second_name=second_name,
+            department=department,
+            role=role,
+            **extra_fields
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, staff_no, first_name, second_name, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(staff_no, first_name, second_name, password, role='ADMIN', **extra_fields)
+
+class CustomUser(AbstractBaseUser):
+    staff_no = models.CharField(max_length=255, unique=True)
+    first_name = models.CharField(max_length=30)
+    second_name = models.CharField(max_length=30)
+    department = models.CharField(max_length=255)
+    role = models.CharField(max_length=10, choices=[('ADMIN', 'Admin'), ('USER', 'User')])
+    is_active = models.BooleanField(default=True)
+    
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = 'staff_no'
+    REQUIRED_FIELDS = ['first_name', 'second_name', 'department', 'role']    
     

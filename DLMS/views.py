@@ -6,6 +6,8 @@ from django.views.decorators.http import require_GET, require_POST
 from .forms import DriverForm,VehicleForm, CoDriverForm, ProductForm
 from .models import Driver, Vehicle, CoDriver, Product, Product
 from django.contrib import messages
+from django.contrib.auth import login as auth_login
+from .models import CustomUser
 
 # Create your views here.
 def dashboard(request):
@@ -268,24 +270,13 @@ def get_products(request):
         } for product in products
     ]
     return JsonResponse({'products': product_list})
-# TRIPS MODULE VIEWS
-# def create_trip(request):
-#     if request.method == "POST":
-#         form = TripForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('some_success_url')  # replace 'some_success_url' with the actual success URL
-#     else:
-#         form = TripForm()
-    
-#     drivers = Driver.objects.all()
-#     vehicles = Vehicle.objects.all()
-    
-#     context = {
-#         'form': form,
-#         'drivers': drivers,
-#         'vehicles': vehicles,
-#     }
-    
-#     return render(request, 'create_trip.html', context)
 
+
+# SIGN UP VIEW
+
+def login(request):
+    return render(request, 'login.html')
+
+
+def signup(request):
+    return render(request, 'signup.html')

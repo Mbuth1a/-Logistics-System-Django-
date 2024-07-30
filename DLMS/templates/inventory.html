@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>INVENTORY - Add Product - DANCO LOGISTICS SYSTEM</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> 
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
@@ -20,8 +19,8 @@
     }
     
     .btn-primary {
-      background-color: #ff6600;
-      border-color: #ff6600;
+      background-color:aqua
+      border-color:#e65c00
     }
     
     .btn-primary:hover {
@@ -65,6 +64,7 @@
     .form-control {
       border-color: #ccc;
     }
+    
     .sidebar {
       position: fixed;
       top: 0;
@@ -73,39 +73,57 @@
       height: 100%;
       background-color: #343a40;
       padding-top: 20px;
-  }
-  .sidebar a {
+      z-index: 1000; /* Ensure sidebar is above content */
+    }
+    
+    .sidebar a {
       color: #fff;
       padding: 15px;
       text-decoration: none;
       display: block;
-  }
-  .sidebar a:hover {
+    }
+    
+    .sidebar a:hover {
       background-color: #ff8c00;
-  }
-  .main-content {
-      margin-left: 220px;
-  }
-  .back-button {
+    }
+    
+    .main-content {
+      margin-left: 210px; /* Adjust margin to avoid overlap with sidebar */
+      padding: 20px;
+    }
+    
+    .back-button {
       display: inline-block;
       padding: 10px 15px;
       background-color: #343a40;
       color: #fff;
       border: none;
       cursor: pointer;
-  }
-  .back-button:hover {
+    }
+    
+    .back-button:hover {
       background-color: #ff8c00;
-  }
-</style>
-
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="sidebar">
     <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
-</div>
+  </div>
   <div class="container mt-1 col-md-10">
-    <h1 class="text-center"> DLMS Inventory Management</h1>
+    <h1 class="text-center"><b><u><i>DLMS Inventory Management</b></u></i></h1>
 
     <!-- Search Bar -->
     <div class="form-group mt-3" style="width: 300px; float: right;">
@@ -121,7 +139,7 @@
     </div>
 
     <!-- Add Product Button -->
-    <button id="showAddProductFormBtn" class="btn btn-primary mb-3" data-toggle="modal" data-target="#addProductModal">
+    <button id="showAddProductFormBtn" class="btn btn-primary mb-12 mt-1" data-toggle="modal" data-target="#addProductModal">
       <i class="fas fa-plus-circle"></i> Add Product
     </button>
 
@@ -135,8 +153,6 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-
-
           <div class="modal-body">
             <form method="POST" action="{% url 'inventory' %}" id="addProductForm">
               {% csrf_token %}
@@ -193,8 +209,8 @@
       <tbody></tbody>
     </table>
   </div>
+
   <script>
-    
     document.addEventListener('DOMContentLoaded', function() {
       // Fetch and display the initial list of products
       fetchProducts();
@@ -244,26 +260,25 @@
         .then(data => {
           const productTableBody = document.getElementById('productTable').getElementsByTagName('tbody')[0];
           productTableBody.innerHTML = '';
-          data.products.forEach(product => {
-            addProductToTable(product);
+          data.products.forEach((product, index) => {
+            addProductToTable(product, index + 1);
           });
         })
         .catch(error => console.error('Error:', error));
     }
 
-    function addProductToTable(product) {
+    function addProductToTable(product, index) {
       const productTableBody = document.getElementById('productTable').getElementsByTagName('tbody')[0];
       const newRow = productTableBody.insertRow();
-      const count = productTableBody.getElementsByTagName('tr').length;
-
       newRow.innerHTML = `
-        <td>${count}</td>
-        <td>${product.description}</td>
-        <td>${product.stock_code}</td>
-        <td>${product.product}</td>
-        <td>${product.unit_of_measure}</td>
-        <td>${product.weight_per_metre}</td>
-      `;
+        <tr>
+          <td>${index}</td>
+          <td>${product.description}</td>
+          <td>${product.stock_code}</td>
+          <td>${product.product}</td>
+          <td>${product.unit_of_measure}</td>
+          <td>${product.weight_per_metre}</td>
+        </tr>`;
     }
 
     function searchProducts() {
@@ -282,12 +297,9 @@
       window.location.href = "{% url 'dashboard' %}";
   }
 
+    function goToDashboard() {
+      window.location.href = '{% url "dashboard" %}';
+    }
   </script>
-
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
-  
 </body>
 </html>
