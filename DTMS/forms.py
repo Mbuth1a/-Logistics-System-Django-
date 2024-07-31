@@ -8,8 +8,8 @@ class TripForm(forms.ModelForm):
             'driver', 'co_driver', 'vehicle', 'from_location', 'to_location', 'est_distance'
         ]
         widgets = {
-            'date': forms.DateInput(attrs={'type': 'date'}),
-            'time': forms.TimeInput(attrs={'type': 'time'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'day': forms.Select(choices=[
                 ('Monday', 'Monday'),
                 ('Tuesday', 'Tuesday'),
@@ -18,12 +18,15 @@ class TripForm(forms.ModelForm):
                 ('Friday', 'Friday'),
                 ('Saturday', 'Saturday'),
                 ('Sunday', 'Sunday'),
-            ]),
+            ], attrs={'class': 'form-control'}),
             'description': forms.Select(choices=[
                 ('Pick-up', 'Pick-up'),
                 ('Delivery', 'Delivery'),
                 ('Sale Trip', 'Sale Trip'),
-            ]),
+            ], attrs={'class': 'form-control'}),
+            'from_location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter start location'}),
+            'to_location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter destination'}),
+            'est_distance': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter estimated distance'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -31,8 +34,6 @@ class TripForm(forms.ModelForm):
         self.fields['driver'].queryset = Driver.objects.filter(trip__isnull=True)
         self.fields['co_driver'].queryset = CoDriver.objects.filter(trip__isnull=True)
         self.fields['vehicle'].queryset = Vehicle.objects.filter(trip__isnull=True)
-        
-        
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expenses

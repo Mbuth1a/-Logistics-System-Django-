@@ -3,13 +3,16 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
-from .forms import DriverForm,VehicleForm, CoDriverForm, ProductForm,SignUpForm
+from .forms import DriverForm,VehicleForm, CoDriverForm, ProductForm
 from .models import Driver, Vehicle, CoDriver, Product, Product
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login
-from .models import CustomUser
+
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+
+
+logger = logging.getLogger(__name__)
 # Create your views here.
 @login_required
 def dashboard(request):
@@ -278,9 +281,9 @@ def get_products(request):
 
 def login(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        staff_no = request.POST.get('username')
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=staff_no, password=password)
         
         if user is not None and user.is_active:
             auth_login(request, user)
@@ -291,6 +294,7 @@ def login(request):
             else:
                 return redirect('/login/')
         else:
+            logger.debug(f"Login failed for staff_no: {staff_no}")
             return render(request, 'login.html', {'error': 'Invalid credentials'})
     return render(request, 'login.html')
 def signup(request):
@@ -298,10 +302,10 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            auth_login(request, user)  # Correct usage of login function
+            auth_login(request, user)
             if user.role == 'ADMIN':
                 return redirect('/dashboard/')
-            elif user.role == "USER":
+            elif user.role == 'USER':
                 return redirect('/dtms_dashboard/')
             else:
                 return redirect('/login/')

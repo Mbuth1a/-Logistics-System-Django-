@@ -6,16 +6,18 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 import datetime
+from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET
-from django.contrib.auth.decorators import login_required
 
 # Create your views here.
-@login_required
 def dtms_dashboard(request):
     return render(request, 'dtms_dashboard.html')
 
 
 def create_trip(request):
+    drivers = Driver.objects.all()
+    co_drivers = CoDriver.objects.all()
+    vehicles = Vehicle.objects.all()
     if request.method == 'POST':
         form = TripForm(request.POST)
         if form.is_valid():
@@ -25,7 +27,11 @@ def create_trip(request):
     else:
         form = TripForm()
     
-    return render(request, 'create_trip.html', {'form': form})
+    return render(request, 'create_trip.html', 
+        {
+        'drivers': drivers,
+        'co_drivers': co_drivers,
+        'vehicles': vehicles})
 def search_drivers(request):
     query = request.GET.get('query', '')
     drivers = Driver.objects.filter(name__icontains=query).values('id', 'name')
@@ -194,36 +200,59 @@ def save_fuel(request):
 
 
 def fetch_fuel_records(request):
-    records = Fuel.objects.values('trip__vehicle__vehicle_regno', 'trip_id', 'fuel_consumed', 'date')
-    data = [{'vehicle': record['trip__vehicle__vehicle_regno'], 'id': record['trip_id'], 'fuel_consumed': record['fuel_consumed'], 'date': record['date']} for record in records]
-    return JsonResponse(data, safe=False)
-# Overall reports of monthly consumption per vehicle
-@require_GET
-def fetch_monthly_consumption(request):
-    vehicle_id = request.GET.get('vehicle_id')
-    month = request.GET.get('month')  # Expected format: 'YYYY-MM'
-
-    if not vehicle_id or not month:
-        return JsonResponse({'error': 'Vehicle ID and month are required'}, status=400)
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    vehicle_id = request.GET.get('vehicle')
 
     try:
-        # Validate the month format
-        year, month = map(int, month.split('-'))
-        start_of_month = datetime.date(year, month, 1)
-        end_of_month = (start_of_month.replace(day=28) + datetime.timedelta(days=4)).replace(day=1) - datetime.timedelta(days=1)
+        start_date = parse_date(start_date)
+        end_date = parse_date(end_date)
     except ValueError:
-        return JsonResponse({'error': 'Invalid month format. Expected YYYY-MM'}, status=400)
+        start_date = None
+        end_date = None
 
-    try:
-        # Get trips for the specified vehicle and month
-        trips = Trip.objects.filter(vehicle_id=vehicle_id, date__range=[start_of_month, end_of_month])
-        fuel_records = Fuel.objects.filter(trip__in=trips).aggregate(total_consumption=Sum('fuel_consumed'))
-        total_consumption = fuel_records['total_consumption'] or 0
-    except Trip.DoesNotExist:
-        return JsonResponse({'error': 'No trips found for the specified vehicle and month'}, status=404)
+    trips = Trip.objects.all()
 
-    return JsonResponse({'total_consumption': total_consumption})
+    if vehicle_id:
+        try:
+            vehicle_id = int(vehicle_id)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid vehicle ID'}, status=400)
+    
+    if start_date and end_date:
+        trips = trips.filter(date__range=(start_date, end_date))
+    
+    trip_data = []
+    for trip in trips:
+        fuel_record = Fuel.objects.filter(trip=trip).first()  # Assuming one-to-one relationship
+        trip_data.append({
+            'id': trip.id,
+            'vehicle': trip.vehicle.vehicle_regno,  # Adjust based on your actual vehicle field
+            'date': trip.date,
+            'from_location': trip.from_location,
+            'to_location': trip.to_location,
+            'fuel_consumed': fuel_record.fuel_consumed if fuel_record else 0,
+        })
+
+    return JsonResponse({'trips': trip_data})
+# Overall reports of monthly consumption per vehicle
+def fetch_monthly_consumption(request):
+    vehicle_id = request.GET.get('vehicle')
+    if not vehicle_id:
+        return JsonResponse({'monthly_data': {}})
+
+    trips = Trip.objects.filter(vehicle_id=vehicle_id)
+    monthly_data = {}
+    for trip in trips:
+        fuel_record = Fuel.objects.filter(trip=trip).first()
+        if fuel_record:
+            month = fuel_record.date.strftime('%Y-%m')
+            if month not in monthly_data:
+                monthly_data[month] = 0
+            monthly_data[month] += float(fuel_record.fuel_consumed)
+
+    return JsonResponse({'monthly_data': monthly_data})
 
 def fetch_vehicle_list(request):
-    vehicles = Vehicle.objects.all().values_list('vehicle_regno', flat=True)
-    return JsonResponse(list(vehicles), safe=False)
+    vehicles = Vehicle.objects.all().values('id', 'vehicle_regno')
+    return JsonResponse({'vehicles': list(vehicles)})

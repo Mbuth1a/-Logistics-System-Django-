@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fuel Management</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         .sidebar {
             height: 100vh;
@@ -66,6 +67,9 @@
             font-size: 1.2em;
             font-weight: bold;
         }
+        .form-inline input {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -76,20 +80,40 @@
     <div class="content">
         <h2 class="text-center">Fuel Management</h2>
 
+        <!-- Search Form -->
+        <div class="form-inline mb-4">
+            <div class="form-group">
+                <label for="startDate" class="mr-2">From:</label>
+                <input type="date" id="startDate" class="form-control">
+            </div>
+            <div class="form-group mx-sm-3">
+                <label for="endDate" class="mr-2">To:</label>
+                <input type="date" id="endDate" class="form-control">
+            </div>
+            <div class="form-group mx-sm-3">
+                <label for="vehicleSelect" class="mr-2">Vehicle:</label>
+                <select id="vehicleSelect" class="form-control">
+                    <option value="">All Vehicles</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="searchFuelRecords()">Search</button>
+        </div>
+
         <!-- Trips List -->
         <table class="table table-striped mt-4">
-           
-            <tbody id="tripsList">
-                {% for trip in trips %}
-                <tr data-id="{{ trip.id }}">
-                    <td>{{ trip.id }}</td>
-                    <td>{{ trip.vehicle.vehicle_regno }}</td>
-                    <td>{{ trip.date }}</td>
-                    <td>{{ trip.from_location }}</td>
-                    <td>{{ trip.to_location }}</td>
-                    <td><button class="btn bg-red" onclick="openFuelModal({{ trip.id }}, '{{ trip.vehicle.vehicle_regno }}', '{{ trip.date }}', '{{ trip.from_location }}', '{{ trip.to_location }}')">Fuel Used</button></td>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Vehicle</th>
+                    <th>Date</th>
+                    <th>From Location</th>
+                    <th>To Location</th>
+                    <th>Action</th>
                 </tr>
-                {% endfor %}
+            </thead>
+            <tbody id="tripsList">
+                <!-- Dynamically populated -->
             </tbody>
         </table>
 
@@ -153,8 +177,9 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
         $(document).ready(function() {
-            fetchFuelRecords();
-
+            fetchVehicles();
+            searchFuelRecords(); // Load initial records
+            
             $('#fuelCards').on('click', '.card-header', function() {
                 $(this).next('.card-body').collapse('toggle');
             });
@@ -192,8 +217,7 @@
                 success: function(response) {
                     if (response.success) {
                         $('#fuelModal').modal('hide');
-                        $(`tr[data-id="${tripId}"]`).remove();
-                        fetchFuelRecords();
+                        searchFuelRecords(); // Refresh fuel records
                     } else {
                         alert(response.error);
                     }
@@ -201,22 +225,45 @@
             });
         }
 
-        function fetchFuelRecords() {
+        function searchFuelRecords() {
+            let startDate = $('#startDate').val();
+            let endDate = $('#endDate').val();
+            let vehicle = $('#vehicleSelect').val();
+        
             $.ajax({
                 url: "{% url 'fetch_fuel_records' %}",
                 method: 'GET',
+                data: {
+                    start_date: startDate,
+                    end_date: endDate,
+                    vehicle: vehicle
+                },
                 success: function(response) {
+                    let tripsList = $('#tripsList');
+                    tripsList.empty();
                     let fuelCards = $('#fuelCards');
                     fuelCards.empty();
                     let groupedData = {};
-
-                    response.forEach(record => {
-                        if (!groupedData[record.vehicle]) {
-                            groupedData[record.vehicle] = [];
+        
+                    response.trips.forEach(trip => {
+                        let row = `
+                            <tr data-id="${trip.id}">
+                                <td>${trip.id}</td>
+                                <td>${trip.vehicle}</td>
+                                <td>${trip.date}</td>
+                                <td>${trip.from_location}</td>
+                                <td>${trip.to_location}</td>
+                                <td><button class="btn bg-red" onclick="openFuelModal(${trip.id}, '${trip.vehicle}', '${trip.date}', '${trip.from_location}', '${trip.to_location}')">Fuel Used</button></td>
+                            </tr>
+                        `;
+                        tripsList.append(row);
+        
+                        if (!groupedData[trip.vehicle]) {
+                            groupedData[trip.vehicle] = [];
                         }
-                        groupedData[record.vehicle].push(record);
+                        groupedData[trip.vehicle].push(trip);
                     });
-
+        
                     for (const [vehicle, records] of Object.entries(groupedData)) {
                         let card = `
                             <div class="card mt-3">
@@ -230,7 +277,7 @@
                             card += `
                                 <a href="#" class="list-group-item vehicle-tab">
                                     <div class="vehicle-details">Date: ${record.date}</div>
-                                    <div class="vehicle-details">Fuel Consumed: ${record.fuel_consumed} liters</div>
+                                    <div class="vehicle-details">Fuel Consumed: ${record.fuel_consumed || 0} liters</div>
                                 </a>
                             `;
                         });
@@ -257,11 +304,34 @@
                 data: { vehicle: vehicle },
                 success: function(response) {
                     let monthlyConsumptionDiv = $(`#monthlyConsumption-${vehicle}`);
-                    let totalConsumption = response.total_consumption || 0;
-                    monthlyConsumptionDiv.html(`Total Fuel Consumed: ${totalConsumption} liters`);
+                    let monthlyData = response.monthly_data || {};
+                    let totalConsumption = 0;
+
+                    for (const [month, consumption] of Object.entries(monthlyData)) {
+                        totalConsumption += consumption;
+                        monthlyConsumptionDiv.append(`<p>${month}: ${consumption} liters</p>`);
+                    }
+                    monthlyConsumptionDiv.prepend(`<p>Total Fuel Consumed: ${totalConsumption} liters</p>`);
                 }
             });
         }
+
+        function fetchVehicles() {
+    $.ajax({
+        url: "{% url 'fetch_vehicle_list' %}",
+        method: 'GET',
+        success: function(response) {
+            let vehicleSelect = $('#vehicleSelect');
+            vehicleSelect.empty();
+            vehicleSelect.append('<option value="">All Vehicles</option>');
+            response.vehicles.forEach(vehicle => {
+                vehicleSelect.append(`<option value="${vehicle.id}">${vehicle.vehicle_regno}</option>`);
+            });
+        }
+    });
+}
+
+        
     </script>
 </body>
 </html>

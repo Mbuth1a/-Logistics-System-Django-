@@ -1,7 +1,7 @@
 from django import forms
 from .models import Driver, Vehicle, CoDriver,Product
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser
+
 class DriverForm(forms.ModelForm):
     class Meta:
         model = Driver
@@ -64,23 +64,23 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = ['description', 'stock_code', 'product', 'unit_of_measure', 'weight_per_metre']
        
-class SignUpForm(UserCreationForm):
-    staff_no = forms.CharField(max_length=30, required=True)
-    first_name = forms.CharField(max_length=100, required=True)
-    second_name = forms.CharField(max_length=100, required=True)
-    department = forms.CharField(max_length=100, required=True)
-    role = forms.ChoiceField(choices=[('ADMIN', 'Admin'), ('USER', 'User')], required=True)
+# class SignUpForm(UserCreationForm):
+#     staff_no = forms.CharField(max_length=30, required=True)
+#     first_name = forms.CharField(max_length=100, required=True)
+#     second_name = forms.CharField(max_length=100, required=True)
+#     department = forms.CharField(max_length=100, required=True)
+#     role = forms.ChoiceField(choices=[('ADMIN', 'Admin'), ('USER', 'User')], required=True)
 
-    class Meta:
-        model = CustomUser
-        fields = ('staff_no', 'first_name', 'second_name', 'department', 'role', 'password1', 'password2')
+#     class Meta:
+#         model = User
+#         fields = ('staff_no', 'first_name', 'second_name', 'department', 'role', 'password1', 'password2')
 
-    def clean(self):
-        cleaned_data = super().clean()
-        password1 = cleaned_data.get("password1")
-        password2 = cleaned_data.get("password2")
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         password1 = cleaned_data.get("password1")
+#         password2 = cleaned_data.get("password2")
 
-        if password1 and password2 and password1 != password2:
-            self.add_error('password2', "Passwords do not match")
+#         if password1 and password2 and password1 != password2:
+#             self.add_error('password2', "Passwords do not match")
         
-        return cleaned_data
+#         return cleaned_data
