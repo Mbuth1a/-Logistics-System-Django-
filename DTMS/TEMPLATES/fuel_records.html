@@ -38,8 +38,8 @@
             border: none;
         }
         .card-header:hover {
-            background-color: orange; /* Hover color for card header */
-            color: white; /* Text color for card header on hover */
+            background-color: orange;
+            color: white;
         }
         .btn-primary:hover {
             background-color: orange;
@@ -57,7 +57,7 @@
             background-color: #f8f9fa;
         }
         .vehicle-tab:hover {
-            background-color: #ffe5b4; /* Light orange on hover */
+            background-color: #ffe5b4;
         }
         .collapse {
             transition: height 0.35s ease;
@@ -69,6 +69,13 @@
         }
         .form-inline input {
             margin-right: 10px;
+        }
+        .month-card {
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .month-card:hover {
+            background-color: #f8f9fa;
         }
     </style>
 </head>
@@ -178,21 +185,21 @@
     <script>
         $(document).ready(function() {
             fetchVehicles();
-            searchFuelRecords(); // Load initial records
+            searchFuelRecords();
             
             $('#fuelCards').on('click', '.card-header', function() {
                 $(this).next('.card-body').collapse('toggle');
             });
         });
-
+        
         function goBack() {
             window.location.href = '{% url "dtms_dashboard" %}';
         }
-
+        
         function toggleFuelRecords() {
             $('#fuelRecords').collapse('toggle');
         }
-
+        
         function openFuelModal(tripId, vehicle, date, from, to) {
             $('#tripId').val(tripId);
             $('#vehicle').val(vehicle);
@@ -201,11 +208,11 @@
             $('#toLocation').val(to);
             $('#fuelModal').modal('show');
         }
-
+        
         function saveFuel() {
             let tripId = $('#tripId').val();
             let fuelConsumed = $('#fuelConsumed').val();
-
+        
             $.ajax({
                 url: "{% url 'save_fuel' %}",
                 method: 'POST',
@@ -224,7 +231,74 @@
                 }
             });
         }
-
+        
+        function updateMonthlyConsumption(vehicleRegNo, month, fuelConsumed) {
+            const monthCard = $(`#monthlyConsumption-${vehicleRegNo} .month-card:nth-child(${month})`);
+            let totalConsumption = 0;
+    
+            if (monthCard.length) {
+                const monthCardBody = monthCard.find('.card-body');
+                const currentMonthText = monthCardBody.text().trim();
+                
+                let currentConsumption = parseFloat(monthCardBody.data('consumption')) || 0;
+                totalConsumption = currentConsumption + parseFloat(fuelConsumed);
+                monthCardBody.data('consumption', totalConsumption.toFixed(2));
+                
+                monthCardBody.html(`<h6 class="card-title">${currentMonthText}</h6><p>${totalConsumption.toFixed(2)} liters</p>`);
+            } else {
+                // If monthCard is not found, create it
+                const newMonthCard = `
+                    <div class="col-md-3 col-sm-6 month-card text-center">
+                        <div class="card bg-light">
+                            <div class="card-body" data-consumption="${parseFloat(fuelConsumed).toFixed(2)}">
+                                <h6 class="card-title">${getMonthName(month)}</h6>
+                                <p>${parseFloat(fuelConsumed).toFixed(2)} liters</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $(`#monthlyConsumption-${vehicleRegNo}`).find('.row').append(newMonthCard);
+            }
+        }
+    
+        // Function to convert month number to month name
+        function getMonthName(month) {
+            const months = [
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            return months[month - 1];
+        }
+    
+        // Function to handle saving fuel
+        function saveFuel() {
+            let tripId = $('#tripId').val();
+            let fuelConsumed = $('#fuelConsumed').val();
+            
+            $.ajax({
+                url: "{% url 'save_fuel' %}",
+                method: 'POST',
+                data: {
+                    trip_id: tripId,
+                    fuel_consumed: fuelConsumed,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#fuelModal').modal('hide');
+                        searchFuelRecords(); // Refresh fuel records
+                        let trip = response.trip; // Assuming response includes the trip data
+                        let tripDate = new Date(trip.date);
+                        let month = tripDate.getMonth() + 1; // Months are zero-based
+                        let vehicleRegNo = trip.vehicle_regno;
+                        updateMonthlyConsumption(vehicleRegNo, month, fuelConsumed);
+                    } else {
+                        alert(response.error);
+                    }
+                }
+            });
+        }
+        
         function searchFuelRecords() {
             let startDate = $('#startDate').val();
             let endDate = $('#endDate').val();
@@ -246,67 +320,110 @@
                     let groupedData = {};
         
                     response.trips.forEach(trip => {
-                        let row = `
-                            <tr data-id="${trip.id}">
-                                <td>${trip.id}</td>
-                                <td>${trip.vehicle}</td>
-                                <td>${trip.date}</td>
-                                <td>${trip.from_location}</td>
-                                <td>${trip.to_location}</td>
-                                <td><button class="btn bg-red" onclick="openFuelModal(${trip.id}, '${trip.vehicle}', '${trip.date}', '${trip.from_location}', '${trip.to_location}')">Fuel Used</button></td>
-                            </tr>
-                        `;
-                        tripsList.append(row);
-        
-                        if (!groupedData[trip.vehicle]) {
-                            groupedData[trip.vehicle] = [];
+                        if (!trip.fuel_consumed) {
+                            let row = `
+                                <tr data-id="${trip.id}">
+                                    <td>${trip.id}</td>
+                                    <td>${trip.vehicle}</td>
+                                    <td>${trip.date}</td>
+                                    <td>${trip.from_location}</td>
+                                    <td>${trip.to_location}</td>
+                                    <td><button class="btn bg-red" onclick="openFuelModal(${trip.id}, '${trip.vehicle}', '${trip.date}', '${trip.from_location}', '${trip.to_location}')">Assign Fuel</button></td>
+                                </tr>
+                            `;
+                            tripsList.append(row);
+                        } else {
+                            let tripDate = new Date(trip.date);
+                            let month = tripDate.getMonth() + 1; // Months are zero-based
+                            if (!groupedData[trip.vehicle]) {
+                                groupedData[trip.vehicle] = { fuelRecords: [], monthlyData: {} };
+                            }
+                            if (!groupedData[trip.vehicle].monthlyData[month]) {
+                                groupedData[trip.vehicle].monthlyData[month] = 0;
+                            }
+                            groupedData[trip.vehicle].monthlyData[month] += parseFloat(trip.fuel_consumed);
+                            groupedData[trip.vehicle].fuelRecords.push(trip);
                         }
-                        groupedData[trip.vehicle].push(trip);
                     });
         
-                    for (const [vehicle, records] of Object.entries(groupedData)) {
+                    for (const [vehicle, data] of Object.entries(groupedData)) {
                         let card = `
                             <div class="card mt-3">
                                 <div class="card-header">
                                     <h5 class="card-title">${vehicle}</h5>
                                 </div>
                                 <div class="card-body collapse">
-                                    <div class="list-group">
+                                    <!-- Table for fuel records -->
+                                    <div class="fuel-records-table mb-4">
+                                        <h6>Fuel Records</h6>
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Date</th>
+                                                    <th>From Location</th>
+                                                    <th>To Location</th>
+                                                    <th>Fuel Consumed (liters)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${data.fuelRecords.map(trip => `
+                                                    <tr>
+                                                        <td>${trip.id}</td>
+                                                        <td>${trip.date}</td>
+                                                        <td>${trip.from_location}</td>
+                                                        <td>${trip.to_location}</td>
+                                                        <td>${trip.fuel_consumed || 'N/A'}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- Monthly consumption -->
+                                    <div class="monthly-consumption">
+                                        <h6>Monthly Consumption</h6>
+                                        <div class="row" id="monthlyConsumption-${vehicle}">
                         `;
-                        records.forEach(record => {
+                        const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                        monthsList.forEach((monthName, index) => {
+                            let monthNumber = index + 1;
+                            let consumption = data.monthlyData[monthNumber] || 0;
                             card += `
-                                <a href="#" class="list-group-item vehicle-tab">
-                                    <div class="vehicle-details">Date: ${record.date}</div>
-                                    <div class="vehicle-details">Fuel Consumed: ${record.fuel_consumed || 0} liters</div>
-                                </a>
+                                <div class="col-md-3 col-sm-6 month-card text-center">
+                                    <div class="card bg-light">
+                                        <div class="card-body" data-consumption="${consumption}">
+                                            <h6 class="card-title">${monthName}</h6>
+                                            <p>${consumption.toFixed(2)} liters</p>
+                                        </div>
+                                    </div>
+                                </div>
                             `;
                         });
                         card += `
-                                    </div>
-                                    <div class="monthly-consumption">
-                                        <h6>Monthly Consumption</h6>
-                                        <div id="monthlyConsumption-${vehicle}"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         `;
                         fuelCards.append(card);
-                        fetchMonthlyConsumption(vehicle);
                     }
                 }
             });
         }
-
-        function fetchMonthlyConsumption(vehicle) {
+        
+        
+        
+        function fetchMonthlyConsumption(vehicleRegNo, month) {
             $.ajax({
                 url: "{% url 'fetch_monthly_consumption' %}",
                 method: 'GET',
-                data: { vehicle: vehicle },
+                data: { vehicle: vehicleRegNo, month: month },
                 success: function(response) {
-                    let monthlyConsumptionDiv = $(`#monthlyConsumption-${vehicle}`);
+                    let monthlyConsumptionDiv = $(`#monthlyConsumption-${vehicleRegNo}`);
+                    monthlyConsumptionDiv.empty();
                     let monthlyData = response.monthly_data || {};
                     let totalConsumption = 0;
-
+        
                     for (const [month, consumption] of Object.entries(monthlyData)) {
                         totalConsumption += consumption;
                         monthlyConsumptionDiv.append(`<p>${month}: ${consumption} liters</p>`);
@@ -315,23 +432,21 @@
                 }
             });
         }
-
+        
         function fetchVehicles() {
-    $.ajax({
-        url: "{% url 'fetch_vehicle_list' %}",
-        method: 'GET',
-        success: function(response) {
-            let vehicleSelect = $('#vehicleSelect');
-            vehicleSelect.empty();
-            vehicleSelect.append('<option value="">All Vehicles</option>');
-            response.vehicles.forEach(vehicle => {
-                vehicleSelect.append(`<option value="${vehicle.id}">${vehicle.vehicle_regno}</option>`);
+            $.ajax({
+                url: "{% url 'fetch_vehicle_list' %}",
+                method: 'GET',
+                success: function(response) {
+                    let vehicleSelect = $('#vehicleSelect');
+                    vehicleSelect.empty();
+                    vehicleSelect.append('<option value="">All Vehicles</option>');
+                    response.vehicles.forEach(vehicle => {
+                        vehicleSelect.append(`<option value="${vehicle.id}">${vehicle.vehicle_regno}</option>`);
+                    });
+                }
             });
         }
-    });
-}
-
-        
     </script>
 </body>
 </html>

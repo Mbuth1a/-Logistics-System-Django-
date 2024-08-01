@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garage Management</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #343a40; /* Dark grey background for the whole page */
+            color: #ffffff; /* White text color */
+        }
+        .sidebar {
+            height: 100vh;
+            background-color: #212529; /* Darker grey for the sidebar */
+            padding: 15px;
+        }
+        .sidebar .btn-back {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+        .sidebar .btn-back:hover {
+            background-color: orange;
+            color: black;
+        }
+        .content {
+            background-color: #495057; /* Slightly lighter grey for the content area */
+            color:black;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .modal-content {
+            background-color: #343a40; /* Dark grey for modal content */
+            color: #ffffff; /* White text color in the modal */
+        }
+        .modal-header, .modal-footer {
+            border-bottom: 1px solid #454d55;
+        }
+        .form-control, .btn {
+            background-color: #6c757d; /* Dark grey for form controls and buttons */
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        /* Styles to match the table with list item */
+        
+        .table th, .table td, .list-group-item {
+            padding: 10px; /* Consistent padding */
+        }
+        .table th {
+            background-color: #6c757d;
+            color: #ffffff;
+        }
+        .table td {
+            color: white;
+        }
+        .table thead th {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar">
+            <button class="btn btn-back btn-block" onclick="window.location.href='{% url 'dtms_dashboard' %}'">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+        </div>
+        <!-- Main Content -->
+        <div class="col-md-10 content">
+            <h1>Garage Management</h1>
+
+            <!-- Search Vehicles -->
+            <div class="mb-4">
+                <form id="search-form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="search-query" placeholder="Search for vehicles">
+                        <button type="submit" class="btn btn-primary mt-2">Search</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Vehicle List -->
+            <h2>Vehicles</h2>
+            <ul id="vehicle-list" class="list-group mb-4"></ul>
+
+            <!-- Vehicles in Garage -->
+            <h2>Vehicles in Garage</h2>
+            <table id="garage-table" class="table">
+                <thead>
+                    <tr>
+                        <th>Vehicle Registration Number</th>
+                        <th>Issue Description</th>
+                        <th>Checked In At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="garage-body"></tbody>
+            </table>
+
+            <!-- Modals -->
+            <div class="modal fade" id="garageModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Add Vehicle to Garage</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="garage-form">
+                                <input type="hidden" id="vehicle-id">
+                                <div class="form-group">
+                                    <label for="issue-description">Issue Description</label>
+                                    <textarea class="form-control" id="issue-description" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="checkoutModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Check Out Vehicle</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="checkout-message"></p>
+                            <button id="checkout-button" class="btn btn-primary">Check Out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        let vehicles = [];
+        let garages = [];
+        let vehiclesInGarage = new Set(); // Track vehicles that are in the garage
+
+        function fetchData() {
+            $.getJSON('{% url "get_vehicle_data" %}', function(data) {
+                vehicles = data.vehicles;
+                garages = data.garages;
+                vehiclesInGarage = new Set(garages.map(g => g.vehicleId));
+                renderVehicleList();
+                renderGarageList();
+            });
+        }
+
+        // Render vehicle list
+        function renderVehicleList() {
+            const vehicleList = $('#vehicle-list');
+            vehicleList.empty();
+            vehicles.filter(vehicle => !vehiclesInGarage.has(vehicle.id)).forEach(vehicle => {
+                vehicleList.append(`
+                    <li class="list-group-item">
+                        ${vehicle.regno} - ${vehicle.model} - ${vehicle.type}
+                        <button class="btn btn-success float-right ml-2" onclick="addToGarage(${vehicle.id})">Add to Garage</button>
+                    </li>
+                `);
+            });
+        }
+
+        // Render garage list
+        function renderGarageList() {
+            const garageBody = $('#garage-body');
+            garageBody.empty();
+            garages.forEach(garage => {
+                const vehicle = vehicles.find(v => v.id === garage.vehicleId);
+                garageBody.append(`
+                    <tr>
+                        <td>${vehicle.regno}</td>
+                        <td>${garage.issue}</td>
+                        <td>${new Date(garage.checkedInAt).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="showCheckoutModal(${garage.id})">Check Out</button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        // Handle search form submission
+        $('#search-form').on('submit', function(event) {
+            event.preventDefault();
+            const query = $('#search-query').val().toLowerCase();
+            const filteredVehicles = vehicles.filter(vehicle => 
+                !vehiclesInGarage.has(vehicle.id) && (
+                vehicle.regno.toLowerCase().includes(query) ||
+                vehicle.model.toLowerCase().includes(query) ||
+                vehicle.type.toLowerCase().includes(query)
+            ));
+            const vehicleList = $('#vehicle-list');
+            vehicleList.empty();
+            filteredVehicles.forEach(vehicle => {
+                vehicleList.append(`
+                    <li class="list-group-item">
+                        ${vehicle.regno} - ${vehicle.model} - ${vehicle.type}
+                        <button class="btn btn-success float-right ml-2" onclick="addToGarage(${vehicle.id})">Add to Garage</button>
+                    </li>
+                `);
+            });
+        });
+
+        // Show modal to add vehicle to garage
+        window.addToGarage = function(vehicleId) {
+            $('#vehicle-id').val(vehicleId);
+            $('#garageModal').modal('show');
+        };
+
+        // Save vehicle to garage
+        $('#garage-form').on('submit', function(event) {
+            event.preventDefault();
+            const vehicleId = $('#vehicle-id').val();
+            const issueDescription = $('#issue-description').val();
+            $.post('{% url "add_to_garage" %}', {
+                vehicle_id: vehicleId,
+                issue_description: issueDescription,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            }, function() {
+                fetchData();
+                $('#garageModal').modal('hide');
+            }).fail(function() {
+                alert('Error adding vehicle to garage.');
+            });
+        });
+
+        // Show modal to check out vehicle
+        window.showCheckoutModal = function(garageId) {
+            const garage = garages.find(g => g.id === garageId);
+            const vehicle = vehicles.find(v => v.id === garage.vehicleId);
+            $('#checkout-message').text(`Are you sure you want to check out the vehicle ${vehicle.regno}?`);
+            $('#checkout-button').attr('onclick', `checkoutVehicle(${garageId})`);
+            $('#checkoutModal').modal('show');
+        };
+
+        // Check out vehicle
+        window.checkoutVehicle = function(garageId) {
+            $.post('{% url "checkout_vehicle" %}', {
+                garage_id: garageId,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            }, function() {
+                fetchData();
+                $('#checkoutModal').modal('hide');
+            }).fail(function() {
+                alert('Error checking out vehicle.');
+            });
+        };
+
+        // Initial data fetch
+        fetchData();
+    });
+</script>
+</body>
+</html>

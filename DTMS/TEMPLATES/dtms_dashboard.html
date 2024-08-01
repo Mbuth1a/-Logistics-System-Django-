@@ -82,6 +82,26 @@
     .sub-menu .nav-link {
       padding-left: 30px; /* Add some padding to align sub-menu items */
     }
+    /* Style the submenu */
+  .sub-menu {
+    display: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .nav-item:hover .sub-menu {
+    display: block;
+  }
+
+  .sub-menu .nav-item {
+    padding-left: 20px;
+  }
+
+  /* Optional: Customize submenu items */
+  .sub-menu .nav-link {
+    font-size: 14px;
+  }
+
   </style>
 </head>
 <body>
@@ -125,9 +145,22 @@
 
       <li class="nav-item">
         <a class="nav-link" id="maintenance-link" href="#">
-          <i class="fas fa-tools"></i> MAINTENANCE / GARAGE
+            <i class="fas fa-tools"></i> MAINTENANCE <i class="fas fa-plus" id="maintenance-plus"></i>
         </a>
-      </li>
+        <ul class="nav flex-column sub-menu" id="maintenance-submenu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'garage'%}">
+                    <i class="fas fa-cogs"></i> Garage
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="">
+                    <i class="fas fa-wrench"></i> Maintenance
+                </a>
+            </li>
+        </ul>
+    </li>
+    
 
       <li class="nav-item">
         <a class="nav-link" id="tracking-link" href="#">

@@ -38,3 +38,13 @@ class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expenses
         fields = ['driver_expense', 'co_driver_expense']
+        
+
+# Garage forms
+class GarageForm(forms.ModelForm):
+    class Meta:
+        model = Garage
+        fields = ['vehicle', 'issue_description']
+
+class VehicleSearchForm(forms.Form):
+    search_query = forms.CharField(max_length=100, required=False)

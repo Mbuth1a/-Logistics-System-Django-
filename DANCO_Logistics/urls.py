@@ -52,7 +52,12 @@ urlpatterns = [
     path('fetch_fuel_records/', views.fetch_fuel_records, name='fetch_fuel_records'),
     path('fetch-monthly-consumption/', views.fetch_monthly_consumption, name='fetch_monthly_consumption'),
     path('fetch_vehicle_list/', views.fetch_vehicle_list, name='fetch_vehicle_list'),
-  
+    path('fetch-trips/', views.fetch_trips, name='fetch_trips'),
+    path('garage/', views.garage, name='garage'),
+    path('get_vehicle_data/', views.get_vehicle_data, name='get_vehicle_data'),
+    path('add_to_garage/', views.add_to_garage, name='add_to_garage'),
+    path('checkout_vehicle/', views.checkout_vehicle, name='checkout_vehicle'),
+    
 ]
 
 if settings.DEBUG:

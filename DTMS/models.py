@@ -67,3 +67,14 @@ class Fuel(models.Model):
     
     def __str__(self):
         return f"Fuel record for Trip ID: {self.trip.id} - {self.fuel_consumed} liters"
+
+
+# Garage
+class Garage(models.Model):
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    issue_description = models.TextField()
+    checked_in_at = models.DateTimeField(default=timezone.now)
+    checked_out_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Garage record for Vehicle ID: {self.vehicle.id}"
