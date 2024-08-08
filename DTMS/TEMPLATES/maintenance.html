@@ -23,6 +23,7 @@
         .btn-back:hover {
             background-color: #495057;
         }
+        .card-orange { background-color: #ff9800; } /* Orange color */
         .card-yellow { background-color: #ffeb3b; }
         .card-green { background-color: #4caf50; }
         .card-red { background-color: #f44336; }
@@ -62,26 +63,6 @@
                     <button type="submit" class="btn btn-primary">Search</button>
                 </form>
 
-                <!-- Maintenance Schedule Table -->
-                <div class="row">
-                    {% for schedule in schedules %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card {{ schedule.color_class }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ schedule.vehicle.vehicle_regno }}</h5>
-                                <p class="card-text"><strong>Service Provider:</strong> {{ schedule.service_provider }}</p>
-                                <p class="card-text"><strong>Maintenance Date:</strong> {{ schedule.maintenance_date }}</p>
-                                <p class="card-text"><strong>Inspection Date:</strong> {{ schedule.inspection_date }}</p>
-                                <p class="card-text"><strong>Insurance Date:</strong> {{ schedule.insurance_date }}</p>
-                                <p class="card-text"><strong>Speed Governor Date:</strong> {{ schedule.speed_governor_date }}</p>
-                                <p class="card-text"><strong>KENHA Permit Date:</strong> {{ schedule.kenha_permit_date }}</p>
-                                <p class="card-text"><strong>Days Remaining:</strong> {{ schedule.days_remaining }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-
                 <!-- Vehicle List -->
                 <h2 class="mt-4 mb-3">VEHICLES</h2>
                 <div class="row" id="vehicleList">
@@ -100,6 +81,29 @@
                     </div>
                     {% endfor %}
                 </div>
+
+                <!-- Maintenance Schedule Table -->
+                <h2 class="mt-4 mb-3">SCHEDULES</h2>
+                <div class="row">
+                    {% for schedule in schedules %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card {{ schedule.color_class }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ schedule.vehicle.vehicle_regno }}</h5>
+                                <p class="card-text"><strong>Service Provider:</strong> {{ schedule.service_provider }}</p>
+                                <p class="card-text"><strong>Maintenance Date:</strong> {{ schedule.maintenance_date }}</p>
+                                <p class="card-text"><strong>Inspection Date:</strong> {{ schedule.inspection_date }}</p>
+                                <p class="card-text"><strong>Insurance Date:</strong> {{ schedule.insurance_date }}</p>
+                                <p class="card-text"><strong>Speed Governor Date:</strong> {{ schedule.speed_governor_date }}</p>
+                                <p class="card-text"><strong>KENHA Permit Date:</strong> {{ schedule.kenha_permit_date }}</p>
+                                <p class="card-text"><strong>Days Remaining:</strong> {{ schedule.days_remaining }}</p>
+                                <button class="btn btn-warning edit-btn" data-toggle="modal" data-target="#scheduleModal" data-schedule-id="{{ schedule.id }}" data-action="{% url 'edit_schedule' schedule.id %}">EDIT</button>
+                                <button class="btn btn-danger delete-btn" data-schedule-id="{{ schedule.id }}">DELETE</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -109,7 +113,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="scheduleModalLabel">Add Maintenance Schedule</h5>
+                    <h5 class="modal-title" id="scheduleModalLabel">Add or Edit Maintenance Schedule</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -153,33 +157,45 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
+        // Show modal for editing schedule
         $('#scheduleModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); // Button that triggered the modal
-            var vehicleId = button.data('vehicle-id'); // Extract info from data-* attributes
-        
+            var scheduleId = button.data('schedule-id'); // Extract info from data-* attributes
+            var actionUrl = button.data('action'); // Get the action URL for editing
+            
             // Update the modal's content.
             var modal = $(this);
-            modal.find('#vehicleId').val(vehicleId);
-            var form = modal.find('#scheduleForm');
-            form.attr('action', form.attr('action').replace('0', vehicleId));
+            modal.find('form').attr('action', actionUrl);
+
+            // Fetch the schedule details to pre-fill the form
+            $.ajax({
+                url: actionUrl,
+                method: 'GET',
+                success: function(data) {
+                    modal.find('#vehicleId').val(data.vehicle_id);
+                    modal.find('#serviceProvider').val(data.service_provider);
+                    modal.find('#maintenanceDate').val(data.maintenance_date);
+                    modal.find('#inspectionDate').val(data.inspection_date);
+                    modal.find('#insuranceDate').val(data.insurance_date);
+                    modal.find('#speedGovernorDate').val(data.speed_governor_date);
+                    modal.find('#kenhaPermitDate').val(data.kenha_permit_date);
+                }
+            });
+        });
+
+        // Handle delete button click
+        $(document).on('click', '.delete-btn', function() {
+            var scheduleId = $(this).data('schedule-id');
+            var deleteUrl = "{% url 'delete_schedule' '0' %}".replace('0', scheduleId);
+
+            if (confirm('Are you sure you want to delete this schedule?')) {
+                window.location.href = deleteUrl;
+            }
         });
         
-        document.getElementById('backButton').addEventListener('click', function() {
-            window.location.href = "{% url 'dtms_dashboard' %}";  // Replace with the actual URL name or path
-        });
-
-        // Reset search field when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('searchInput').value = '';
-        });
-
-        // Handle search form submission
-        document.getElementById('searchForm').addEventListener('submit', function(event) {
-            var searchInput = document.getElementById('searchInput').value.trim();
-            if (searchInput === '') {
-                // Reset to display all vehicles if search input is empty
-                window.location.href = "{% url 'maintenance' %}";  // Replace with your view name that displays all vehicles
-            }
+        // Back button navigation
+        $('#backButton').click(function() {
+            window.location.href = "{% url 'dtms_dashboard' %}";
         });
     </script>
 </body>

@@ -58,8 +58,9 @@ urlpatterns = [
     path('add_to_garage/', views.add_to_garage, name='add_to_garage'),
     path('checkout_vehicle/', views.checkout_vehicle, name='checkout_vehicle'),
     path('maintenance/', views.maintenance, name='maintenance'),
-    
     path('schedule_maintenance/<int:vehicle_id>/', views.schedule_maintenance, name='schedule_maintenance'),
+    path('edit_schedule/<int:schedule_id>/', views.edit_schedule, name='edit_schedule'),
+    path('delete_schedule/<int:schedule_id>/', views.delete_schedule, name='delete_schedule'),
     
 ]
 

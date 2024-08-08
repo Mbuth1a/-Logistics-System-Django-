@@ -369,6 +369,8 @@ def maintenance(request):
 
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
+        
+        vehicles = Vehicle.objects.exclude(maintenanceschedule__isnull=False)
         if search_query:
             vehicles = vehicles.filter(vehicle_regno__icontains=search_query)
     
@@ -380,27 +382,49 @@ def maintenance(request):
 
 
 def schedule_maintenance(request, vehicle_id):
-    if request.method == 'POST':
-        service_provider = request.POST.get('service_provider')
-        maintenance_date = request.POST.get('maintenance_date')
-        inspection_date = request.POST.get('inspection_date')
-        insurance_date = request.POST.get('insurance_date')
-        speed_governor_date = request.POST.get('speed_governor_date')
-        kenha_permit_date = request.POST.get('kenha_permit_date')
-        
-        vehicle = get_object_or_404(Vehicle, id=vehicle_id)
-        
-        MaintenanceSchedule.objects.create(
-            vehicle=vehicle,
-            service_provider=service_provider,
-            maintenance_date=maintenance_date,
-            inspection_date=inspection_date,
-            insurance_date=insurance_date,
-            speed_governor_date=speed_governor_date,
-            kenha_permit_date=kenha_permit_date
-        )
-        
-        return redirect('maintenance')  # Adjust redirect as needed
-    else:
-        # Handle GET request or return an error if needed
-        return redirect('maintenance')  # Adjust redirect as needed
+    vehicle_id = request.POST.get('vehicle_id')
+    service_provider = request.POST.get('service_provider')
+    maintenance_date = request.POST.get('maintenance_date')
+    inspection_date = request.POST.get('inspection_date')
+    insurance_date = request.POST.get('insurance_date')
+    speed_governor_date = request.POST.get('speed_governor_date')
+    kenha_permit_date = request.POST.get('kenha_permit_date')
+    
+    vehicle = Vehicle.objects.get(id=vehicle_id)
+    
+    MaintenanceSchedule.objects.create(
+        vehicle=vehicle,
+        service_provider=service_provider,
+        maintenance_date=maintenance_date,
+        inspection_date=inspection_date,
+        insurance_date=insurance_date,
+        speed_governor_date=speed_governor_date,
+        kenha_permit_date=kenha_permit_date
+    )
+    
+    return redirect('maintenance')
+
+
+def edit_schedule(request, schedule_id):
+    schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
+    if request.method == 'GET':
+        data = {
+            'vehicle_id': schedule.vehicle.id,
+            'service_provider': schedule.service_provider,
+            'maintenance_date': schedule.maintenance_date,
+            'inspection_date': schedule.inspection_date,
+            'insurance_date': schedule.insurance_date,
+            'speed_governor_date': schedule.speed_governor_date,
+            'kenha_permit_date': schedule.kenha_permit_date,
+        }
+        return JsonResponse(data)
+    elif request.method == 'POST':
+        form = MaintenanceScheduleForm(request.POST, instance=schedule)
+        if form.is_valid():
+            form.save()
+            return redirect('maintenance')  # Redirect to the page that lists schedules
+
+def delete_schedule(request, schedule_id):
+    schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
+    schedule.delete()
+    return redirect('maintenance')  # Redirect to the page that lists schedules
