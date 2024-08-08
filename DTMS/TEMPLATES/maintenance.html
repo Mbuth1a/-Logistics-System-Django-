@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Schedule</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .card-green {
+            background-color: #d4edda;
+        }
+        .card-orange {
+            background-color: #ffeeba;
+        }
+        .card-red {
+            background-color: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="my-4">Maintenance Schedule</h2>
+    <div class="row">
+        {% for schedule in schedules %}
+        <div class="col-md-4 mb-4">
+            <div class="card" id="vehicle-card-{{ schedule.vehicle.id }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ schedule.vehicle.vehicle_regno }}</h5>
+                    <p class="card-text">{{ schedule.vehicle.vehicle_model }} - {{ schedule.vehicle.vehicle_type }}</p>
+                    <p class="card-text">Service Provider: {{ schedule.service_provider }}</p>
+                    <p class="card-text">Maintenance Date: {{ schedule.maintenance_date }}</p>
+                    <p class="card-text">Inspection Date: {{ schedule.inspection_date }}</p>
+                    <p class="card-text">Insurance Date: {{ schedule.insurance_date }}</p>
+                    <p class="card-text">Speed Governor Date: {{ schedule.speed_governor_date }}</p>
+                    <p class="card-text">Kenha Permit Date: {{ schedule.kenha_permit_date }}</p>
+                    <button class="btn btn-primary" 
+                            data-toggle="modal" 
+                            data-target="#scheduleModal" 
+                            data-vehicle-id="{{ schedule.vehicle.id }}" 
+                            data-vehicle-regno="{{ schedule.vehicle.vehicle_regno }}">
+                            Schedule Maintenance
+                    </button>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal -->
+<!-- Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1" role="dialog" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="scheduleModalLabel">Schedule Maintenance</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="scheduleForm">
+            <input type="hidden" id="vehicle-id" name="vehicle_id">
+            <div class="form-group">
+              <label for="service-provider">Service Provider</label>
+              <input type="text" class="form-control" id="service-provider" name="service_provider" required>
+            </div>
+            <div class="form-group">
+              <label for="maintenance-date">Maintenance Date</label>
+              <input type="date" class="form-control" id="maintenance-date" name="maintenance_date" required>
+              <small id="maintenance-info" class="form-text"></small>
+            </div>
+            <div class="form-group">
+              <label for="inspection-date">Inspection Date</label>
+              <input type="date" class="form-control" id="inspection-date" name="inspection_date" required>
+              <small id="inspection-info" class="form-text"></small>
+            </div>
+            <div class="form-group">
+              <label for="insurance-date">Insurance Date</label>
+              <input type="date" class="form-control" id="insurance-date" name="insurance_date" required>
+              <small id="insurance-info" class="form-text"></small>
+            </div>
+            <div class="form-group">
+              <label for="speed-governor-date">Speed Governor Date</label>
+              <input type="date" class="form-control" id="speed-governor-date" name="speed_governor_date" required>
+              <small id="speed-governor-info" class="form-text"></small>
+            </div>
+            <div class="form-group">
+              <label for="kenha-permit-date">Kenha Permit Date</label>
+              <input type="date" class="form-control" id="kenha-permit-date" name="kenha_permit_date" required>
+              <small id="kenha-permit-info" class="form-text"></small>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateCardInfo() {
+            let maintenanceDate = document.getElementById('maintenance-date').value;
+            let inspectionDate = document.getElementById('inspection-date').value;
+            let insuranceDate = document.getElementById('insurance-date').value;
+            let speedGovernorDate = document.getElementById('speed-governor-date').value;
+            let kenhaPermitDate = document.getElementById('kenha-permit-date').value;
+            
+            let maintenanceInfo = document.getElementById('maintenance-info');
+            let inspectionInfo = document.getElementById('inspection-info');
+            let insuranceInfo = document.getElementById('insurance-info');
+            let speedGovernorInfo = document.getElementById('speed-governor-info');
+            let kenhaPermitInfo = document.getElementById('kenha-permit-info');
+
+            maintenanceInfo.textContent = maintenanceDate ? getDaysRemaining(maintenanceDate) + ' days remaining' : '';
+            inspectionInfo.textContent = inspectionDate ? getDaysRemaining(inspectionDate) + ' days remaining' : '';
+            insuranceInfo.textContent = insuranceDate ? getDaysRemaining(insuranceDate) + ' days remaining' : '';
+            speedGovernorInfo.textContent = speedGovernorDate ? getDaysRemaining(speedGovernorDate) + ' days remaining' : '';
+            kenhaPermitInfo.textContent = kenhaPermitDate ? getDaysRemaining(kenhaPermitDate) + ' days remaining' : '';
+        }
+
+        function getDaysRemaining(dateString) {
+            const today = new Date();
+            const targetDate = new Date(dateString);
+            const timeDiff = targetDate.getTime() - today.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            return daysDiff;
+        }
+
+        // Add event listeners to update info on date change
+        document.getElementById('maintenance-date').addEventListener('change', updateCardInfo);
+        document.getElementById('inspection-date').addEventListener('change', updateCardInfo);
+        document.getElementById('insurance-date').addEventListener('change', updateCardInfo);
+        document.getElementById('speed-governor-date').addEventListener('change', updateCardInfo);
+        document.getElementById('kenha-permit-date').addEventListener('change', updateCardInfo);
+        
+        // Initial update
+        updateCardInfo();
+
+        $('#scheduleModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var vehicleId = button.data('vehicle-id');
+            var vehicleRegno = button.data('vehicle-regno');
+            var modal = $(this);
+            modal.find('#vehicle-id').val(vehicleId);
+            // You might want to pre-fill the form fields here if needed
+        });
+
+        $('#scheduleForm').on('submit', function(event) {
+            event.preventDefault();
+            var form = $(this);
+            var formData = form.serialize();
+            var vehicleId = $('#vehicle-id').val();
+            var url = "{% url 'schedule_maintenance' vehicle_id=0 %}".replace('0', vehicleId);
+            $.post(url, formData, function(response) {
+                if(response.success) {
+                    $('#scheduleModal').modal('hide');
+                    location.reload();  // Optional: Reload page to see updated data
+                } else {
+                    alert('An error occurred while scheduling maintenance.');
+                }
+            });
+        });
+    });
+</script>
+ 
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -78,3 +78,18 @@ class Garage(models.Model):
 
     def __str__(self):
         return f"Garage record for Vehicle ID: {self.vehicle.id}"
+    
+    
+    
+class MaintenanceSchedule(models.Model):
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    service_provider = models.CharField(max_length=100)
+    maintenance_date = models.DateField()
+    inspection_date = models.DateField()
+    insurance_date = models.DateField()
+    speed_governor_date = models.DateField()
+    kenha_permit_date = models.DateField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Maintenance Schedule for {self.vehicle.vehicle_regno}"

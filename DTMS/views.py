@@ -335,3 +335,38 @@ def checkout_vehicle(request):
     garage.save()
     
     return JsonResponse({'success': True})
+
+
+# Maintenance
+def maintenance(request):
+    """
+    Fetches all vehicles from the database and renders the maintenance page.
+    """
+    vehicles = Vehicle.objects.all()
+    context = {
+        'vehicles': vehicles
+    }
+    return render(request, 'maintenance.html', context)
+def schedule_maintenance(request, vehicle_id):
+    if request.method == 'POST':
+        service_provider = request.POST.get('service_provider')
+        maintenance_date = request.POST.get('maintenance_date')
+        inspection_date = request.POST.get('inspection_date')
+        insurance_date = request.POST.get('insurance_date')
+        speed_governor_date = request.POST.get('speed_governor_date')
+        kenha_permit_date = request.POST.get('kenha_permit_date')
+
+        vehicle = Vehicle.objects.get(id=vehicle_id)
+        maintenance = MaintenanceSchedule(
+            vehicle=vehicle,
+            service_provider=service_provider,
+            maintenance_date=maintenance_date,
+            inspection_date=inspection_date,
+            insurance_date=insurance_date,
+            speed_governor_date=speed_governor_date,
+            kenha_permit_date=kenha_permit_date
+        )
+        maintenance.save()
+
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False})

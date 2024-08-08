@@ -180,7 +180,8 @@
                 $.ajax({
                     url: "{% url 'fetch_assigned_expenses' %}",
                     method: 'GET',
-                    success: function(expensesResponse) {
+                    success: function(response) {
+                        let expensesResponse = response.expenses;
                         let assignedTripIds = expensesResponse.map(expense => expense.trip_id);
                         filterTrips(tripsResponse, assignedTripIds);
                         populateDoneExpenses(expensesResponse);
@@ -190,7 +191,7 @@
                     }
                 });
             }
-    
+            
             function filterTrips(tripsResponse, assignedTripIds) {
                 let tripsList = $('#tripsList');
                 tripsList.empty();
@@ -229,51 +230,62 @@
                     expensesList.append(tableRow);
                 });
             }
-            
-            window.openModal = function(tripId) {
-                let trip = $(`tr[data-id="${tripId}"]`);
-                $('#tripId').val(tripId);
-                $('#regNo').val(trip.find('td:nth-child(2)').text());
-                $('#tripDate').val(trip.find('td:nth-child(3)').text());
-                $('#fromLocation').val(trip.find('td:nth-child(4)').text());
-                $('#toLocation').val(trip.find('td:nth-child(5)').text());
-                $('#driverName').val(trip.find('td:nth-child(6)').text());
-                $('#coDriverName').val(trip.find('td:nth-child(7)').text());
-                $('#expenseModal').modal('show');
-            };
-            
-            window.saveExpenses = function() {
-                let tripId = $('#tripId').val();
-                let driverExpense = $('#driverExpense').val();
-                let coDriverExpense = $('#coDriverExpense').val();
-                
-                $.ajax({
-                    url: "{% url 'assign_expenses' %}",
-                    method: 'POST',
-                    data: {
-                        'trip_id': tripId,
-                        'driver_expense': driverExpense,
-                        'co_driver_expense': coDriverExpense,
-                        'csrfmiddlewaretoken': '{{ csrf_token }}'
-                    },
-                    success: function(response) {
-                        $('#expenseModal').modal('hide');
-                        fetchTrips();
-                    },
-                    error: function(error) {
-                        console.error('Error saving expenses:', error);
-                    }
-                });
-            };
-            
-            window.goBackToDashboard = function() {
-                window.location.href = "{% url 'dtms_dashboard' %}";
-            };
-            
-            window.toggleDoneExpenses = function() {
-                $('#doneExpensesList').toggle();
-            };
         });
+
+        function toggleDoneExpenses() {
+            $('#doneExpensesList').toggle();
+        }
+
+        function openModal(tripId) {
+            const url = `/get_trip_details/${tripId}/`;
+            $.ajax({
+                url: url,
+                method: 'GET',
+                success: function(trip) {
+                    $('#tripId').val(trip.id);
+                    $('#regNo').val(trip.vehicle);
+                    $('#driverName').val(trip.driver);
+                    $('#coDriverName').val(trip.co_driver);
+                    $('#tripDate').val(trip.date);
+                    $('#fromLocation').val(trip.from_location);
+                    $('#toLocation').val(trip.to_location);
+                    $('#expenseModal').modal('show');
+                },
+                error: function(error) {
+                    console.error('Error fetching trip details:', error);
+                }
+            });
+        }
+        
+
+        function saveExpenses() {
+            let expenseData = {
+                tripId: $('#tripId').val(),
+                driverExpense: $('#driverExpense').val(),
+                coDriverExpense: $('#coDriverExpense').val(),
+            };
+
+            $.ajax({
+                url: "{% url 'assign_expenses' %}",
+                method: 'POST',
+                data: expenseData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    alert('Expenses saved successfully');
+                    $('#expenseModal').modal('hide');
+                    location.reload(); // Refresh the page to update the trip and expense lists
+                },
+                error: function(error) {
+                    console.error('Error saving expenses:', error);
+                }
+            });
+        }
+
+        function goBackToDashboard() {
+            window.location.href = "{% url 'dtms_dashboard' %}";
+        }
     </script>
 </body>
 </html>
