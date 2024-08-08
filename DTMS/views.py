@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 import datetime
+from datetime import timedelta
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET,require_POST
 
@@ -339,14 +340,45 @@ def checkout_vehicle(request):
 
 # Maintenance
 def maintenance(request):
-    """
-    Fetches all vehicles from the database and renders the maintenance page.
-    """
     vehicles = Vehicle.objects.all()
+    schedules = MaintenanceSchedule.objects.all()
+    now = timezone.now().date()
+
+    # Prepare schedule data with color codes based on date proximity
+    schedule_data = []
+    for schedule in schedules:
+        days_remaining = (schedule.maintenance_date - now).days
+        if days_remaining > 60:
+            color_class = 'card-green'
+        elif days_remaining > 30:
+            color_class = 'card-orange'
+        else:
+            color_class = 'card-red'
+        
+        schedule_data.append({
+            'vehicle': schedule.vehicle,
+            'service_provider': schedule.service_provider,
+            'maintenance_date': schedule.maintenance_date,
+            'inspection_date': schedule.inspection_date,
+            'insurance_date': schedule.insurance_date,
+            'speed_governor_date': schedule.speed_governor_date,
+            'kenha_permit_date': schedule.kenha_permit_date,
+            'days_remaining': days_remaining,
+            'color_class': color_class,
+        })
+
+    if request.method == 'GET':
+        search_query = request.GET.get('search', '')
+        if search_query:
+            vehicles = vehicles.filter(vehicle_regno__icontains=search_query)
+    
     context = {
-        'vehicles': vehicles
+        'vehicles': vehicles,
+        'schedules': schedule_data,
     }
     return render(request, 'maintenance.html', context)
+
+
 def schedule_maintenance(request, vehicle_id):
     if request.method == 'POST':
         service_provider = request.POST.get('service_provider')
@@ -355,9 +387,10 @@ def schedule_maintenance(request, vehicle_id):
         insurance_date = request.POST.get('insurance_date')
         speed_governor_date = request.POST.get('speed_governor_date')
         kenha_permit_date = request.POST.get('kenha_permit_date')
-
-        vehicle = Vehicle.objects.get(id=vehicle_id)
-        maintenance = MaintenanceSchedule(
+        
+        vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+        
+        MaintenanceSchedule.objects.create(
             vehicle=vehicle,
             service_provider=service_provider,
             maintenance_date=maintenance_date,
@@ -366,7 +399,8 @@ def schedule_maintenance(request, vehicle_id):
             speed_governor_date=speed_governor_date,
             kenha_permit_date=kenha_permit_date
         )
-        maintenance.save()
-
-        return JsonResponse({'success': True})
-    return JsonResponse({'success': False})
+        
+        return redirect('maintenance')  # Adjust redirect as needed
+    else:
+        # Handle GET request or return an error if needed
+        return redirect('maintenance')  # Adjust redirect as needed

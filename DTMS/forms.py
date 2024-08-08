@@ -48,3 +48,22 @@ class GarageForm(forms.ModelForm):
 
 class VehicleSearchForm(forms.Form):
     search_query = forms.CharField(max_length=100, required=False)
+    
+class MaintenanceScheduleForm(forms.ModelForm):
+    class Meta:
+        model = MaintenanceSchedule
+        fields = [
+            'service_provider',
+            'maintenance_date',
+            'inspection_date',
+            'insurance_date',
+            'speed_governor_date',
+            'kenha_permit_date'
+        ]
+        widgets = {
+            'maintenance_date': forms.DateInput(attrs={'type': 'date'}),
+            'inspection_date': forms.DateInput(attrs={'type': 'date'}),
+            'insurance_date': forms.DateInput(attrs={'type': 'date'}),
+            'speed_governor_date': forms.DateInput(attrs={'type': 'date'}),
+            'kenha_permit_date': forms.DateInput(attrs={'type': 'date'}),
+        }
