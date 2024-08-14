@@ -62,6 +62,7 @@
                             <th>Vehicle</th>
                             <th>Date</th>
                             <th>From</th>
+                            <th>Stops</th>
                             <th>To</th>
                             <th>Driver</th>
                             <th>Co-Driver</th>
@@ -86,6 +87,7 @@
                                 <th>Vehicle</th>
                                 <th>Date</th>
                                 <th>From</th>
+                                <th>Stops</th>
                                 <th>To</th>
                                 <th>Driver</th>
                                 <th>Co-Driver</th>
@@ -144,6 +146,10 @@
                             <input type="text" class="form-control" id="fromLocation" readonly>
                         </div>
                         <div class="form-group">
+                            <label for="fromLocation">Stops</label>
+                            <input type="text" class="form-control" id="Stops" readonly>
+                        </div>
+                        <div class="form-group">
                             <label for="toLocation">To Location</label>
                             <input type="text" class="form-control" id="toLocation" readonly>
                         </div>
@@ -162,26 +168,27 @@
     <script>
         $(document).ready(function() {
             fetchTrips();
-            
+        
             function fetchTrips() {
                 $.ajax({
-                    url: "{% url 'fetch_trips' %}",
+                    url: "{% url 'fetch_trips' %}", // Ensure this URL matches your Django URL pattern
                     method: 'GET',
-                    success: function(tripsResponse) {
-                        fetchAssignedExpenses(tripsResponse); // Fetch assigned expenses and then filter trips
+                    success: function(response) {
+                        let tripsResponse = response.trips || [];
+                        fetchAssignedExpenses(tripsResponse);
                     },
                     error: function(error) {
                         console.error('Error fetching trips:', error);
                     }
                 });
             }
-            
+        
             function fetchAssignedExpenses(tripsResponse) {
                 $.ajax({
                     url: "{% url 'fetch_assigned_expenses' %}",
                     method: 'GET',
                     success: function(response) {
-                        let expensesResponse = response.expenses;
+                        let expensesResponse = response.expenses || [];
                         let assignedTripIds = expensesResponse.map(expense => expense.trip_id);
                         filterTrips(tripsResponse, assignedTripIds);
                         populateDoneExpenses(expensesResponse);
@@ -191,7 +198,7 @@
                     }
                 });
             }
-            
+        
             function filterTrips(tripsResponse, assignedTripIds) {
                 let tripsList = $('#tripsList');
                 tripsList.empty();
@@ -202,6 +209,7 @@
                                         <td>${trip.vehicle}</td>
                                         <td>${trip.date}</td>
                                         <td>${trip.from_location}</td>
+                                        <td>${trip.stops}</td>
                                         <td>${trip.to_location}</td>
                                         <td>${trip.driver}</td>
                                         <td>${trip.co_driver}</td>
@@ -211,7 +219,7 @@
                     }
                 });
             }
-            
+        
             function populateDoneExpenses(expensesResponse) {
                 let expensesList = $('#expensesList');
                 expensesList.empty();
@@ -221,6 +229,7 @@
                                     <td>${expense.vehicle}</td>
                                     <td>${expense.date}</td>
                                     <td>${expense.from_location}</td>
+                                    <td>${expense.stops}</td>
                                     <td>${expense.to_location}</td>
                                     <td>${expense.driver_name}</td>
                                     <td>${expense.co_driver_name}</td>
@@ -230,7 +239,9 @@
                     expensesList.append(tableRow);
                 });
             }
+            // Remaining functions remain unchanged
         });
+        
 
         function toggleDoneExpenses() {
             $('#doneExpensesList').toggle();
@@ -248,6 +259,7 @@
                     $('#coDriverName').val(trip.co_driver);
                     $('#tripDate').val(trip.date);
                     $('#fromLocation').val(trip.from_location);
+                    $('#Stops').val(trip.stops);
                     $('#toLocation').val(trip.to_location);
                     $('#expenseModal').modal('show');
                 },

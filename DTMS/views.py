@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect,get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from DTMS.forms import*
 from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
@@ -15,64 +15,61 @@ def dtms_dashboard(request):
     return render(request, 'dtms_dashboard.html')
 
 
+
 def create_trip(request):
     drivers = Driver.objects.all()
     co_drivers = CoDriver.objects.all()
     vehicles = Vehicle.objects.all()
+
+    # Retrieve the choices for the 'description' field from the Trip model
+    description_choices = Trip._meta.get_field('description').choices
+
     if request.method == 'POST':
         form = TripForm(request.POST)
         if form.is_valid():
-            # Save form data and perform necessary operations
-            form.save()
-            return redirect('load_trip')  # Redirect to the load_trip page after successful form submission
-    else:
-        form = TripForm()
-    
-    return render(request, 'create_trip.html', 
-        {
+            trip = form.save(commit=False)
+            trip.day = request.POST.get('day')  # Set the day field
+            trip.save()
+            return redirect('load_trip')  # Replace 'load_trip' with your URL name or path
+        else:
+            return JsonResponse({'status': 'error', 'message': form.errors}, status=400)
+
+    form = TripForm()
+    return render(request, 'create_trip.html', {
         'drivers': drivers,
         'co_drivers': co_drivers,
-        'vehicles': vehicles})
+        'vehicles': vehicles,
+        'description_choices': description_choices,  # Pass the choices to the template
+        'form': form
+    })
 def search_drivers(request):
     query = request.GET.get('query', '')
     drivers = Driver.objects.filter(name__icontains=query).values('id', 'name')
     return JsonResponse({'drivers': list(drivers)})
-
 # Load Trip Views 
 
 @csrf_protect
-def load_trip(request):
+def load_trip(request, trip_id):
+    trip = Trip.objects.get(id=trip_id)
+    
     if request.method == 'POST':
-        trip_id = request.POST['trip']
-        products = request.POST.getlist('products[]')
-        types = request.POST.getlist('types[]')
-        quantities = request.POST.getlist('quantities[]')
+        formset = ProductFormSet(request.POST)
+        if formset.is_valid():
+            for form in formset:
+                trip_product = form.save(commit=False)
+                trip_product.trip = trip
+                trip_product.save()
+            return redirect('success_url')  # redirect to a success page or another view
+    else:
+        formset = ProductFormSet()
         
-        trip = Trip.objects.get(id=trip_id)
-        
-        for product_id, type_, quantity in zip(products, types, quantities):
-            product = Product.objects.get(id=product_id)
-            weight = product.weight_per_metre * float(quantity)
-            
-            LoadTrip.objects.create(
-                trip=trip,
-                product=product,
-                type=type_,
-                quantity=quantity,
-                total_weight=weight
-            )
-        
-        return redirect('load_trip')
-    
-    trips = Trip.objects.all()
+    trip = Trip.objects.all()
     products = Product.objects.all()
+
+    return render(request, 'load_trip.html', {'formset': formset, 'trip': trip})
+
     
-    context = {
-        'trips': trips,
-        'products': products
-    }
-    
-    return render(request, 'load_trip.html', context)
+   
 
 
 def get_trips(request):
@@ -88,37 +85,25 @@ def get_trips(request):
             'co_driver': trip.co_driver.co_driver_name,  # Assuming CoDriver model has a 'name' field
             'vehicle': str(trip.vehicle),  # Using the __str__ representation of Vehicle
             'from_location': trip.from_location,
+            'stops': trip.stops,
             'to_location': trip.to_location,
             'est_distance': trip.est_distance
         } for trip in trips
     ]
     return JsonResponse(data, safe=False)
 
-
+# Expenses
 def expenses(request):
     return render(request, 'expenses.html')
 
 def fetch_trips(request):
-    trips = Trip.objects.all()
-    data = [
-        {
-            'id': trip.id,
-            'date': trip.date.isoformat(),
-            'time': trip.time.isoformat(),
-            'day': trip.day,
-            'description': trip.description,
-            'driver': trip.driver.full_name,  # Assuming Driver model has a 'full_name' field
-            'co_driver': trip.co_driver.co_driver_name,  # Assuming CoDriver model has a 'co_driver_name' field
-            'vehicle': str(trip.vehicle),  # Using the __str__ representation of Vehicle
-            'from_location': trip.from_location,
-            'to_location': trip.to_location,
-            'est_distance': trip.est_distance
-        } for trip in trips
-    ]
-    return JsonResponse(data, safe=False)
+    trips = Trip.objects.all().values(
+        'id', 'vehicle__vehicle_regno', 'date', 'from_location', 'stops', 'to_location', 
+        'driver__name', 'co_driver__name'
+    )
+    return JsonResponse({'trips': list(trips)})
 
-def get_trip_details(request):
-    trip_id = request.GET.get('trip_id')  # Remove the comma here
+def get_trip_details(request, trip_id):
     try:
         trip = Trip.objects.get(id=trip_id)
         trip_data = {
@@ -127,28 +112,23 @@ def get_trip_details(request):
             'time': trip.time.isoformat(),
             'day': trip.day,
             'description': trip.description,
-            'driver': {
-                'full_name': trip.driver.full_name,
-            },
-            'co_driver': {
-                'co_driver_name': trip.co_driver.co_driver_name,
-            },
-            'vehicle': trip.vehicle.vehicle_regno,  # Use a string representation or a serializable field
+            'driver': trip.driver.full_name,
+            'co_driver': trip.co_driver.co_driver_name,
+            'vehicle': trip.vehicle.vehicle_regno,
             'from_location': trip.from_location,
+            'stops': trip.stops,
             'to_location': trip.to_location,
             'est_distance': trip.est_distance,
         }
         return JsonResponse(trip_data)
     except Trip.DoesNotExist:
         return JsonResponse({'error': 'Trip not found'}, status=404)
-
-
 @csrf_exempt
 def assign_expenses(request):
     if request.method == 'POST':
-        trip_id = request.POST.get('trip_id')
-        driver_expense = request.POST.get('driver_expense')
-        co_driver_expense = request.POST.get('co_driver_expense')
+        trip_id = request.POST.get('tripId')
+        driver_expense = request.POST.get('driverExpense')
+        co_driver_expense = request.POST.get('coDriverExpense')
 
         trip = get_object_or_404(Trip, id=trip_id)
 
@@ -163,23 +143,9 @@ def assign_expenses(request):
     return JsonResponse({'status': 'fail'}, status=400)
 
 def fetch_assigned_expenses(request):
-    expenses = Expenses.objects.all()
-    expenses_data = []
-
-    for expense in expenses:
-        expenses_data.append({
-            'trip_id': expense.trip.id,
-            'vehicle': expense.trip.vehicle.vehicle_regno,
-            'date': expense.trip.date,
-            'from_location': expense.trip.from_location,
-            'to_location': expense.trip.to_location,
-            'driver_name': expense.trip.driver.full_name,
-            'co_driver_name': expense.trip.co_driver.co_driver_name,
-            'driver_expense': expense.driver_expense,
-            'co_driver_expense': expense.co_driver_expense,
-        })
-
-    return JsonResponse(expenses_data, safe=False)
+    expenses = Expenses.objects.all().values()  # Query to get all expenses
+    expenses_list = list(expenses)  # Convert queryset to a list
+    return JsonResponse({'expenses': expenses_list})
 
 
 def fuel(request):
@@ -276,6 +242,19 @@ def garage(request):
         'garages': garages
     })
 
+
+def garage_list(request):
+    # Get all garage records and group them by vehicle registration number
+    garage_records = Garage.objects.all()
+    
+    # Grouping the records by vehicle registration number
+    grouped_records = {}
+    for record in garage_records:
+        if record.vehicle.regno not in grouped_records:
+            grouped_records[record.vehicle.regno] = []
+        grouped_records[record.vehicle.regno].append(record)
+
+    return render(request, 'garage.html', {'grouped_records': grouped_records})
 #  Fetch vehicle and garage data
 def get_vehicle_data(request):
     vehicles = Vehicle.objects.all()
@@ -382,49 +361,56 @@ def maintenance(request):
 
 
 def schedule_maintenance(request, vehicle_id):
-    vehicle_id = request.POST.get('vehicle_id')
-    service_provider = request.POST.get('service_provider')
-    maintenance_date = request.POST.get('maintenance_date')
-    inspection_date = request.POST.get('inspection_date')
-    insurance_date = request.POST.get('insurance_date')
-    speed_governor_date = request.POST.get('speed_governor_date')
-    kenha_permit_date = request.POST.get('kenha_permit_date')
-    
-    vehicle = Vehicle.objects.get(id=vehicle_id)
-    
-    MaintenanceSchedule.objects.create(
-        vehicle=vehicle,
-        service_provider=service_provider,
-        maintenance_date=maintenance_date,
-        inspection_date=inspection_date,
-        insurance_date=insurance_date,
-        speed_governor_date=speed_governor_date,
-        kenha_permit_date=kenha_permit_date
-    )
-    
-    return redirect('maintenance')
-
-
-def edit_schedule(request, schedule_id):
-    schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
-    if request.method == 'GET':
-        data = {
-            'vehicle_id': schedule.vehicle.id,
-            'service_provider': schedule.service_provider,
-            'maintenance_date': schedule.maintenance_date,
-            'inspection_date': schedule.inspection_date,
-            'insurance_date': schedule.insurance_date,
-            'speed_governor_date': schedule.speed_governor_date,
-            'kenha_permit_date': schedule.kenha_permit_date,
-        }
-        return JsonResponse(data)
-    elif request.method == 'POST':
-        form = MaintenanceScheduleForm(request.POST, instance=schedule)
+    if request.method == 'POST':
+        form = MaintenanceScheduleForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('maintenance')  # Redirect to the page that lists schedules
+            schedule_id = request.POST.get('schedule_id', None)
+            if schedule_id:
+                # Update existing schedule
+                schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
+                form = MaintenanceScheduleForm(request.POST, instance=schedule)
+            else:
+                # Create new schedule
+                form = MaintenanceScheduleForm(request.POST)
+            
+            if form.is_valid():
+                new_schedule = form.save(commit=False)
+                new_schedule.vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+                new_schedule.save()
+                return redirect('maintenance')  # Replace with your success URL
+            else:
+                return render(request,'maintenance.html', {'form': form})
+        else:
+            return render(request, 'maintenance.html', {'form': form})
+    else:
+        form = MaintenanceScheduleForm()
+        return render(request, 'maintenance.html', {'form': form})
 
-def delete_schedule(request, schedule_id):
+def get_schedule(request):
+    schedule_id = request.GET.get('schedule_id')
     schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
-    schedule.delete()
-    return redirect('maintenance')  # Redirect to the page that lists schedules
+    data = {
+        'id': schedule.id,
+        'vehicle_id': schedule.vehicle.id,
+        'service_provider': schedule.service_provider,
+        'maintenance_date': schedule.maintenance_date,
+        'inspection_date': schedule.inspection_date,
+        'insurance_date': schedule.insurance_date,
+        'speed_governor_date': schedule.speed_governor_date,
+        'kenha_permit_date': schedule.kenha_permit_date,
+    }
+    return JsonResponse(data)
+
+def delete_schedule(request):
+    if request.method == 'POST':
+        schedule_id = request.POST.get('schedule_id')
+        schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
+        vehicle_id = schedule.vehicle.id  # Get the vehicle id before deletion
+        schedule.delete()
+        
+        # Check if the vehicle has any remaining schedules
+        remaining_schedules = MaintenanceSchedule.objects.filter(vehicle_id=vehicle_id).exists()
+
+        return JsonResponse({'success': True, 'vehicle_id': vehicle_id, 'has_remaining_schedules': remaining_schedules})
+    
+    return JsonResponse({'success': False})

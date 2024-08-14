@@ -42,26 +42,31 @@ urlpatterns = [
     path('create_trip/', views.create_trip, name='create_trip'), 
     path('load_trip/', views.load_trip, name='load_trip'),
     path('api/trips/', views.get_trips, name='get_trips'),
+    
+    # Expenses
     path('expenses/', views.expenses, name='expenses'),
     path('fetch_trips/', views.fetch_trips, name='fetch_trips'),
     path('get_trip_details/<int:trip_id>/', views.get_trip_details, name='get_trip_details'),
     path('assign_expenses/', views.assign_expenses, name='assign_expenses'),
     path('fetch_assigned_expenses/', views.fetch_assigned_expenses, name='fetch_assigned_expenses'),
+    # Fuel Records
     path('fuel_records/', views.fuel, name='fuel_records'),
     path('save_fuel/', views.save_fuel, name='save_fuel'),
     path('fetch_fuel_records/', views.fetch_fuel_records, name='fetch_fuel_records'),
     path('fetch-monthly-consumption/', views.fetch_monthly_consumption, name='fetch_monthly_consumption'),
     path('fetch_vehicle_list/', views.fetch_vehicle_list, name='fetch_vehicle_list'),
     path('fetch-trips/', views.fetch_trips, name='fetch_trips'),
+#    Garage
     path('garage/', views.garage, name='garage'),
     path('get_vehicle_data/', views.get_vehicle_data, name='get_vehicle_data'),
     path('add_to_garage/', views.add_to_garage, name='add_to_garage'),
     path('checkout_vehicle/', views.checkout_vehicle, name='checkout_vehicle'),
+    # Maintenance page
     path('maintenance/', views.maintenance, name='maintenance'),
     path('schedule_maintenance/<int:vehicle_id>/', views.schedule_maintenance, name='schedule_maintenance'),
-    path('edit_schedule/<int:schedule_id>/', views.edit_schedule, name='edit_schedule'),
-    path('delete_schedule/<int:schedule_id>/', views.delete_schedule, name='delete_schedule'),
-    
+    path('get-schedule/', views.get_schedule, name='get_schedule'),
+    path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
+    path('garage-history/', views.garage_list, name='garage_list'),
 ]
 
 if settings.DEBUG:

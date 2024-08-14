@@ -1,34 +1,13 @@
 from django import forms
 from DTMS.models import*
+from django.forms import formset_factory
 class TripForm(forms.ModelForm):
     class Meta:
         model = Trip
-        fields = [
-            'date', 'time', 'day', 'description',  
-            'driver', 'co_driver', 'vehicle', 'from_location', 'to_location', 'est_distance'
-        ]
+        fields = ['date', 'time', 'description', 'driver', 'co_driver', 'vehicle', 'from_location', 'stops', 'to_location', 'est_distance']
         widgets = {
-            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-            'day': forms.Select(choices=[
-                ('Monday', 'Monday'),
-                ('Tuesday', 'Tuesday'),
-                ('Wednesday', 'Wednesday'),
-                ('Thursday', 'Thursday'),
-                ('Friday', 'Friday'),
-                ('Saturday', 'Saturday'),
-                ('Sunday', 'Sunday'),
-            ], attrs={'class': 'form-control'}),
-            'description': forms.Select(choices=[
-                ('Pick-up', 'Pick-up'),
-                ('Delivery', 'Delivery'),
-                ('Sale Trip', 'Sale Trip'),
-            ], attrs={'class': 'form-control'}),
-            'from_location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter start location'}),
-            'to_location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter destination'}),
-            'est_distance': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter estimated distance'}),
+            'description': forms.Select(choices=Trip._meta.get_field('description').choices),
         }
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['driver'].queryset = Driver.objects.filter(trip__isnull=True)
@@ -67,3 +46,11 @@ class MaintenanceScheduleForm(forms.ModelForm):
             'speed_governor_date': forms.DateInput(attrs={'type': 'date'}),
             'kenha_permit_date': forms.DateInput(attrs={'type': 'date'}),
         }
+        
+        
+class LoadTripForm(forms.ModelForm):
+    class Meta:
+        model = LoadTrip
+        fields = ['product', 'quantity']
+
+ProductFormSet = formset_factory(LoadTripForm, extra=1)

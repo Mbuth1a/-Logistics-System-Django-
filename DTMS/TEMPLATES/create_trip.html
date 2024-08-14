@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Trip</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .text-orange { color: orange; }
+        .text-grey { color: grey; }
+        .bg-orange { background-color: orange; }
+        .form-group { padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px; }
+        .sidebar { position: fixed; top: 0; left: 0; width: 200px; height: 100%; background-color: #343a40; padding-top: 20px; overflow-y: auto; }
+        .sidebar a { color: #fff; padding: 15px; text-decoration: none; display: block; }
+        .sidebar a:hover { background-color: #ff8c00; }
+        .main-content { margin-left: 200px; padding: 20px; height: 100vh; overflow-y: auto; }
+        .back-button { display: inline-block; padding: 10px 15px; background-color: #343a40; color: #fff; border: none; cursor: pointer; text-align: center; }
+        .back-button:hover { background-color: #ff8c00; }
+        .form-container { max-width: 1600px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
+    </div>
+    <div class="main-content">
+        <h2 class="text-center text-orange mb-4"><i class="fas fa-road"></i> Create Trip</h2>
+        <div class="form-container">
+            <form id="createTripForm" method="post" action="{% url 'create_trip' %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="date"><i class="fas fa-calendar-alt"></i> Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="time"><i class="fas fa-clock"></i> Time</label>
+                            <input type="time" class="form-control" id="time" name="time" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="day"><i class="fas fa-sun"></i> Day</label>
+                            <input type="text" class="form-control" id="day" name="day" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="description"><i class="fas fa-info-circle"></i> Description</label>
+                            <select class="form-control" id="description" name="description" required>
+                                <option value="" disabled selected>Select Description</option>
+                                {% for value, label in description_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="driver"><i class="fas fa-user"></i> Driver</label>
+                            <select class="form-control" id="driver" name="driver" required>
+                                {% for driver in drivers %}
+                                    <option value="{{ driver.id }}">{{ driver }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="co_driver"><i class="fas fa-user-friends"></i> Co-Driver</label>
+                            <select class="form-control" id="co_driver" name="co_driver" required>
+                                {% for co_driver in co_drivers %}
+                                    <option value="{{ co_driver.id }}">{{ co_driver }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="vehicle"><i class="fas fa-truck"></i> Vehicle</label>
+                            <select class="form-control" id="vehicle" name="vehicle" required>
+                                {% for vehicle in vehicles %}
+                                    <option value="{{ vehicle.id }}">{{ vehicle }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="from_location"><i class="fas fa-map-marker-alt"></i> From Location</label>
+                            <input type="text" class="form-control" id="from_location" name="from_location" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="stops"><i class="fas fa-map-marker-alt"></i> Stops (Optional)</label>
+                            <input type="text" class="form-control" id="stops" name="stops" placeholder="Enter stops in order (Optional)">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="to_location"><i class="fas fa-map-marker-alt"></i> To Location</label>
+                            <input type="text" class="form-control" id="to_location" name="to_location" required>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="est_distance"><i class="fas fa-ruler"></i> Estimated Distance</label>
+                            <input type="varchar" class="form-control" id="est_distance" name="est_distance">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block bg-orange mt-4"><i class="fas fa-paper-plane"></i> Submit</button>
+            </form>
+            <div id="distance" class="text-center mt-3 text-grey"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global function definition
+        function goToDashboard() {
+            window.location.href = "{% url 'dtms_dashboard' %}";
+        }
+
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-populate the Day field based on selected date
+            document.getElementById('date').addEventListener('change', function() {
+                var date = new Date(this.value);
+                var options = { weekday: 'long' };
+                var dayName = date.toLocaleDateString('en-US', options);
+                document.getElementById('day').value = dayName;
+            });
+            
+            
+    
+        });
+    </script>
+</body>
+</html>

@@ -53,6 +53,31 @@
             background-color: orange !important;
             font-weight: bold;
         }
+        .collapsible {
+            background-color: #777;
+            color: white;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        .active, .collapsible:hover {
+            background-color: #555;
+        }
+
+        .content-history {
+            padding: 0 10px;
+            display: none;
+            overflow: hidden;
+            background-color: #f1f1f1;
+            color: black;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -99,9 +124,31 @@
 
             <!-- Garage History Section -->
             <h2>Garage History</h2>
-            <div id="garage-history">
-                <!-- Collapsible sections for each vehicle's history will be generated here -->
-            </div>
+                <div id="garage-history">
+                    {% for regno, garages in grouped_garages.items %}
+                    <button class="collapsible">{{ regno }}</button>
+                    <div class="content-history">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Checked In At</th>
+                                    <th>Checked Out At</th>
+                                    <th>Issue Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for garage in garages %}
+                                <tr>
+                                    <td>{{ garage.checked_in_at }}</td>
+                                    <td>{{ garage.checked_out_at }}</td>
+                                    <td>{{ garage.issue_description }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endfor %}
+                </div>
 
             <!-- Modals -->
             <div class="modal fade" id="garageModal" tabindex="-1" role="dialog">
@@ -150,22 +197,34 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-    $(document).ready(function() {
-        let vehicles = [];
-        let garages = [];
-        let vehiclesInGarage = new Set(); // Track vehicles that are in the garage
 
+    document.addEventListener("DOMContentLoaded", function() {
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+    });
+    $(document).ready(function() {
+        // Function to fetch data and render vehicle lists
         function fetchData() {
             $.getJSON('{% url "get_vehicle_data" %}', function(data) {
                 vehicles = data.vehicles;
                 garages = data.garages;
-                vehiclesInGarage = new Set(garages.map(g => g.vehicleId));
+                vehiclesInGarage = new Set(garages.filter(g => !g.checkedOutAt).map(g => g.vehicleId));
                 renderVehicleList();
                 renderGarageList();
-                renderGarageHistory();
+                
             });
         }
-
+    
         // Render vehicle list
         function renderVehicleList() {
             const vehicleList = $('#vehicle-list');
@@ -179,12 +238,13 @@
                 `);
             });
         }
-
-        // Render garage list
+    
+        // Render active garage list (vehicles currently in the garage)
+        
         function renderGarageList() {
             const garageBody = $('#garage-body');
             garageBody.empty();
-            garages.forEach(garage => {
+            garages.filter(g => !g.checkedOutAt).forEach(garage => {
                 const vehicle = vehicles.find(v => v.id === garage.vehicleId);
                 garageBody.append(`
                     <tr>
@@ -198,8 +258,8 @@
                 `);
             });
         }
-
-
+    
+        
         // Handle search form submission
         $('#search-form').on('submit', function(event) {
             event.preventDefault();
@@ -221,13 +281,13 @@
                 `);
             });
         });
-
+    
         // Show modal to add vehicle to garage
         window.addToGarage = function(vehicleId) {
             $('#vehicle-id').val(vehicleId);
             $('#garageModal').modal('show');
         };
-
+    
         // Save vehicle to garage
         $('#garage-form').on('submit', function(event) {
             event.preventDefault();
@@ -244,7 +304,7 @@
                 alert('Error adding vehicle to garage.');
             });
         });
-
+    
         // Show modal to check out vehicle
         window.showCheckoutModal = function(garageId) {
             const garage = garages.find(g => g.id === garageId);
@@ -253,7 +313,7 @@
             $('#checkout-button').attr('onclick', `checkoutVehicle(${garageId})`);
             $('#checkoutModal').modal('show');
         };
-
+    
         // Check out vehicle
         window.checkoutVehicle = function(garageId) {
             $.post('{% url "checkout_vehicle" %}', {
@@ -266,10 +326,11 @@
                 alert('Error checking out vehicle.');
             });
         };
-
+    
         // Initial data fetch
         fetchData();
     });
+    
 </script>
 </body>
 </html>
