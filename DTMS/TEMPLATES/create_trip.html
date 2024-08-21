@@ -113,7 +113,7 @@
                     <div class="col-md-12">
                         <div class="form-group">
                             <label for="est_distance"><i class="fas fa-ruler"></i> Estimated Distance</label>
-                            <input type="varchar" class="form-control" id="est_distance" name="est_distance">
+                            <input type="text" class="form-control" id="est_distance" name="est_distance">
                         </div>
                     </div>
                 </div>
@@ -129,7 +129,6 @@
             window.location.href = "{% url 'dtms_dashboard' %}";
         }
 
-        
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-populate the Day field based on selected date
             document.getElementById('date').addEventListener('change', function() {
@@ -138,9 +137,39 @@
                 var dayName = date.toLocaleDateString('en-US', options);
                 document.getElementById('day').value = dayName;
             });
-            
-            
-    
+
+            // Fetch trip data and update select options
+            fetch("{% url 'trip_data' %}")
+                .then(response => response.json())
+                .then(data => {
+                    const { drivers, co_drivers, vehicles } = data;
+
+                    // Function to update select options
+                    function updateSelectOptions(selector, usedIds, allOptions) {
+                        const selectElement = document.querySelector(selector);
+                        selectElement.innerHTML = ''; // Clear existing options
+
+                        allOptions.forEach(option => {
+                            if (!usedIds.includes(parseInt(option.value))) {
+                                let opt = document.createElement('option');
+                                opt.value = option.value;
+                                opt.textContent = option.text;
+                                selectElement.appendChild(opt);
+                            }
+                        });
+                    }
+
+                    // Example options for each select element
+                    const allDriverOptions = Array.from(document.querySelector('#driver').options);
+                    const allCoDriverOptions = Array.from(document.querySelector('#co_driver').options);
+                    const allVehicleOptions = Array.from(document.querySelector('#vehicle').options);
+
+                    // Update each select element with available options
+                    updateSelectOptions('#driver', drivers, allDriverOptions);
+                    updateSelectOptions('#co_driver', co_drivers, allCoDriverOptions);
+                    updateSelectOptions('#vehicle', vehicles, allVehicleOptions);
+                })
+                .catch(error => console.error('Error fetching trip data:', error));
         });
     </script>
 </body>

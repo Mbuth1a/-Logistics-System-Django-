@@ -6,9 +6,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 import datetime
+from django.http import HttpResponseServerError
 from datetime import timedelta
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET,require_POST
+import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 def dtms_dashboard(request):
@@ -48,29 +53,70 @@ def search_drivers(request):
     return JsonResponse({'drivers': list(drivers)})
 # Load Trip Views 
 
-@csrf_protect
-def load_trip(request, trip_id):
-    trip = Trip.objects.get(id=trip_id)
-    
+
+def load_trip(request):
     if request.method == 'POST':
-        formset = ProductFormSet(request.POST)
-        if formset.is_valid():
-            for form in formset:
-                trip_product = form.save(commit=False)
-                trip_product.trip = trip
-                trip_product.save()
-            return redirect('success_url')  # redirect to a success page or another view
+        form = LoadTripForm(request.POST)
+        if form.is_valid():
+            trip = form.cleaned_data['trip']
+            products = request.POST.getlist('product_ids')
+            quantities = request.POST.getlist('quantities')
+            weights = request.POST.getlist('weights')
+            
+            # Save the LoadTrip instance and associated products
+            load_trip_instance = LoadTrip.objects.create(trip=trip)
+            for product_id, quantity, weight in zip(products, quantities, weights):
+                product = Product.objects.get(id=product_id)
+                load_trip_instance.products.add(product, through_defaults={
+                    'quantity': quantity,
+                    'total_weight': weight
+                })
+            
+            return redirect('load_trip')  # Redirect to a success page or wherever you want
     else:
-        formset = ProductFormSet()
-        
-    trip = Trip.objects.all()
-    products = Product.objects.all()
-
-    return render(request, 'load_trip.html', {'formset': formset, 'trip': trip})
-
+        form = LoadTripForm()
     
-   
+    # Fetch trips and products for the form
+    trips = Trip.objects.all()
+    products = Product.objects.all()
+    
+    context = {
+        'form': form,
+        'trips': trips,
+        'products': products
+    }
+    
+    return render(request, 'load_trip.html', context)
+def load_trips(request):
+    trips = Trip.objects.all()  # Fetch all trips from the database
+    context = {
+        'trips': trips,
+    }
+    return render(request, 'dtms_dashboard.html', context)
 
+def end_trip(request, trip_id):
+    if request.method == 'POST':
+        try:
+            trip = Trip.objects.get(id=trip_id)
+            trip.status = 'ended'  # Assuming 'ended' is the status for a finished trip
+            trip.save()  # Save the status update
+            return JsonResponse({'success': True})
+        except Trip.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Trip not found'})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+# Filtering available objects
+def get_trip_data(request):
+    trips = Trip.objects.all()
+    drivers = {trip.driver.id for trip in trips}
+    co_drivers = {trip.co_driver.id for trip in trips}
+    vehicles = {trip.vehicle.id for trip in trips}
+
+    return JsonResponse({
+        'drivers': list(drivers),
+        'co_drivers': list(co_drivers),
+        'vehicles': list(vehicles),
+    })
 
 def get_trips(request):
     trips = Trip.objects.all()

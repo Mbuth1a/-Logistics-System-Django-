@@ -5,6 +5,11 @@ from decimal import Decimal
 
 # Create your models here.
 class Trip(models.Model):
+    STATUS_CHOICES = [
+        ('ongoing', 'Ongoing'),
+        ('ended', 'Ended'),
+    ]
+    
     date = models.DateField()
     time = models.TimeField()
     day = models.CharField(max_length=10)
@@ -13,7 +18,6 @@ class Trip(models.Model):
         ('Delivery', 'Delivery'),
         ('Sale Trip', 'Sale Trip'),
     ])
-    
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
     co_driver = models.ForeignKey(CoDriver, on_delete=models.CASCADE)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
@@ -21,35 +25,26 @@ class Trip(models.Model):
     stops = models.CharField(max_length=200, null=True, blank=True)
     to_location = models.CharField(max_length=100)
     est_distance = models.CharField(max_length=100)
-    
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='ongoing')  # New status field
     
     def __str__(self):
         return f"|{self.vehicle}|   |{self.from_location}|  |{self.stops}|  |{self.to_location}| |{self.driver}|  |{self.co_driver}|"
     
-    
 class LoadTrip(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()  # Assuming quantity is positive
-    type = models.CharField(max_length=10, choices=[('pieces', 'Pieces'), ('rolls', 'Rolls')])
-    total_weight = models.FloatField()
-    
-   
-    
-    def save(self, *args, **kwargs):
-        # Calculate total weight before saving
-        if self.product:
-            weight_per_metre = float(self.product.weight_per_metre)
-            if self.type == 'pieces':
-                self.total_weight = float(self.quantity * weight_per_metre)
-            elif self.type == 'rolls':
-                # Assuming rolls are handled similarly
-                self.total_weight = float(self.quantity * weight_per_metre)
-        super().save(*args, **kwargs)
+    products = models.ManyToManyField(Product, through='LoadTripProduct')
 
     def __str__(self):
-        return f"LoadTrip {self.id} - Trip {self.trip.id} - Product {self.product.stock_code}"
-    
+        return f"Load for {self.trip}"
+
+class LoadTripProduct(models.Model):
+    load_trip = models.ForeignKey(LoadTrip, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    total_weight = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.quantity} x {self.product} for {self.load_trip}"
     
 class Expenses(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)

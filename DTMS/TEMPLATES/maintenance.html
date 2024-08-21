@@ -8,7 +8,7 @@
     <style>
         .sidebar {
             height: 100vh;
-            background-color: #6c757d; /* Grey color */
+            background-color: #333; /* Grey color */
             padding: 15px;
             position: fixed;
             top: 0;
@@ -57,11 +57,11 @@
 
         <!-- Main Content -->
         <div class="content">
-            <div class="container mt-4">
-                <h1 class="mb-4">Vehicle Maintenance Schedule</h1>
+            <div class="container col-md-12 ">
+                <h1 class="mb-4 position-center">Vehicle Maintenance Schedule</h1>
                 
                 <!-- Search Form -->
-                <form id="searchForm" method="get" class="mb-8">
+                <form id="searchForm" method="get" class="mb-4">
                     <div class="form-group">
                         <input type="text" name="search" id="searchInput" class="form-control" placeholder="Search by vehicle registration number">
                     </div>
@@ -88,10 +88,10 @@
                 </div>
 
                 <!-- Maintenance Schedule Table -->
-                <h2 class="mt-4 mb-4">SCHEDULES</h2>
+                <h2 class="mt-6 mb-6">SCHEDULES</h2>
                 <div class="row">
                     {% for schedule in schedules %}
-                    <div class="col-md-4 mb-4" data-vehicle-id="{{ schedule.vehicle.id }}">
+                    <div class="col-md-6 mb-4" data-vehicle-id="{{ schedule.vehicle.id }}">
                         <div class="card {{ schedule.color_class }}">
                             <div class="card-body">
                                 <h5 class="card-title">{{ schedule.vehicle.vehicle_regno }}</h5>
@@ -102,8 +102,6 @@
                                 <p class="card-text"><strong>Speed Governor Date:</strong> {{ schedule.speed_governor_date }}</p>
                                 <p class="card-text"><strong>KENHA Permit Date:</strong> {{ schedule.kenha_permit_date }}</p>
                                 <p class="card-text"><strong>Days Remaining:</strong> {{ schedule.days_remaining }}</p>
-                                <button class="btn btn-secondary btn-edit" data-toggle="modal" data-target="#scheduleModal" data-schedule-id="{{ schedule.id }}">EDIT</button>
-                                <button class="btn btn-danger btn-delete" data-schedule-id="{{ schedule.id }}" data-vehicle-id="{{ schedule.vehicle.id }}">DELETE</button>
                             </div>
                         </div>
                     </div>
@@ -196,47 +194,13 @@
                 modal.find('#vehicleId').val(vehicleId);
                 modal.find('.modal-title').text('Add Maintenance Schedule');
                 form.attr('action', "{% url 'schedule_maintenance' vehicle_id=0 %}".replace('0', vehicleId));
-            }
-        });
+                }
+            });
 
-        $('.btn-delete').on('click', function () {
-            var scheduleId = $(this).data('schedule-id');
-            var vehicleId = $(this).data('vehicle-id');
-            var scheduleCard = $(this).closest('.col-md-4'); // Get the closest column to remove
-        
-            if (confirm('Are you sure you want to delete this schedule?')) {
-                $.ajax({
-                    url: `/delete_schedule/`,
-                    type: 'POST',
-                    data: {
-                        'schedule_id': scheduleId,
-                        'csrfmiddlewaretoken': '{{ csrf_token }}'
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            // Remove the schedule card from the DOM
-                            scheduleCard.remove();
-        
-                            // Check if there are any schedules left for the vehicle
-                            if (!response.has_remaining_schedules) {
-                                // Remove the vehicle card if no schedules are left
-                                $('#vehicleList').find('[data-vehicle-id="' + vehicleId + '"]').remove();
-                            }
-                        } else {
-                            alert('An error occurred while deleting the schedule. Please try again.');
-                        }
-                    },
-                    error: function () {
-                        alert('An error occurred while deleting the schedule. Please try again.');
-                    }
-                });
-            }
-        });
-        
-        
-        $('#backButton').on('click', function () {
-            window.location.href = "{% url 'dtms_dashboard' %}";
-        });
-    </script>
+
+    $('#backButton').on('click', function () {
+        window.location.href = "{% url 'dtms_dashboard' %}";
+    });
+</script>
 </body>
 </html>

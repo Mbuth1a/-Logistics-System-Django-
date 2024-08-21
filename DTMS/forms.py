@@ -1,5 +1,6 @@
 from django import forms
-from DTMS.models import*
+from DTMS.models import* 
+from DTMS.models import LoadTrip
 from django.forms import formset_factory
 class TripForm(forms.ModelForm):
     class Meta:
@@ -51,6 +52,12 @@ class MaintenanceScheduleForm(forms.ModelForm):
 class LoadTripForm(forms.ModelForm):
     class Meta:
         model = LoadTrip
-        fields = ['product', 'quantity']
+        fields = '__all__'
 
 ProductFormSet = formset_factory(LoadTripForm, extra=1)
+
+
+class LoadTripProductForm(forms.ModelForm):
+    class Meta:
+        model = LoadTripProduct
+        fields = ['product', 'quantity', 'total_weight']

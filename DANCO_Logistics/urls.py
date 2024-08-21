@@ -41,7 +41,13 @@ urlpatterns = [
     path('', views.dtms_dashboard, name='dtms_dashboard'),
     path('create_trip/', views.create_trip, name='create_trip'), 
     path('load_trip/', views.load_trip, name='load_trip'),
+    path('load_trips/', views.load_trips, name='load_trips'),
     path('api/trips/', views.get_trips, name='get_trips'),
+    path('api/trip-data/', views.get_trip_data, name='trip_data'),
+    path('end-trip/<int:trip_id>/', views.end_trip, name='end_trip'),
+    
+
+    
     
     # Expenses
     path('expenses/', views.expenses, name='expenses'),

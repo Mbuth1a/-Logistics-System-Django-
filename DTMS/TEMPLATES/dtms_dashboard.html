@@ -13,100 +13,121 @@
       background-color: #333; /* Dark grey background */
       color: #fff; /* White text color */
     }
-
+  
     .nav-link {
       transition: transform 0.2s ease;
       color: #fff; /* White text color for nav links */
+      font-size: 20px; /* Larger font size for module names */
+      padding: 10px 20px; /* Increase padding for sidebar items */
     }
-
+  
     .nav-link:hover {
       transform: translateX(10px);
+      color: #ff9800; /* Orange color on hover */
     }
-
-    /* Style the sidebar and navbar for responsiveness */
+  
+    /* Style the sidebar */
     .sidebar {
-      width: 260px; /* Adjust sidebar width as needed */
+      width: 300px; /* Increase sidebar width */
       position: fixed;
       top: 0;
       bottom: 0;
       left: 0;
       padding-top: 20px;
-      background-color: #333; /* Dark grey background for sidebar */
+      background-color: #333; /* Grey background for sidebar */
     }
-
+  
     .sidebar h2 {
-      color: #fff; /* White text color for sidebar header */
+      color: #ff9800; /* White text color for sidebar header */
+      font-size: 40px; /* Larger font size for sidebar header */
+      padding-left: 20px; /* Add padding to align header with sidebar items */
     }
-
-    .navbar {
-      padding-top: 10px; /* Add some padding to the navbar */
-      margin-left: 90px; /* Adjust margin to match the sidebar width */
-      background-color: #333; /* Dark grey background for navbar */
-      color: #333; /* White text color for navbar */
-    }
-
+  
     /* Style the body content for responsiveness */
     .container {
       padding: 20px; /* Remove default padding from container */
-      margin-left: 260px; /* Adjust margin to match the sidebar width */
-      max-width: calc(100% - 280px); /* Allow container to fill available width minus sidebar and padding */
+      margin-left: 300px; /* Adjust margin to match the sidebar width */
+      max-width: calc(100% - 320px); /* Allow container to fill available width minus sidebar and padding */
     }
-
+  
     .row {
       margin-right: 0; /* Remove horizontal spacing between columns */
       margin-left: 0; /* Remove horizontal spacing between columns */
     }
-
-    .col-lg-3
-    .col-md-6 {
+  
+    .col-lg-3, .col-md-6 {
       padding: 15px; /* Add some padding to columns */
     }
-
+  
     .card {
       background-color: #6c757d; /* Dark grey background for cards */
     }
-
+  
     .card-body {
-      color: #333ff; /* White text color for card body */
+      color: #fff; /* White text color for card body */
     }
-
+  
     .card .text-white-50 {
       color: rgba(255, 255, 255, 0.5); /* 50% white text color */
     }
-
+  
     /* Style the sub-menu */
     .sub-menu {
       display: none; /* Hide the sub-menu by default */
+      margin-left: 0;
+      padding-left: 0;
     }
-
+  
+    .nav-item:hover .sub-menu {
+      display: block;
+    }
+  
     .sub-menu .nav-link {
-      padding-left: 30px; /* Add some padding to align sub-menu items */
+      font-size: 18px; /* Adjust font size for submenu items */
+      padding-left: 40px; /* Add some padding to align sub-menu items */
     }
-    /* Style the submenu */
-  .sub-menu {
-    display: none;
-    margin-left: 0;
-    padding-left: 0;
-  }
-
-  .nav-item:hover .sub-menu {
-    display: block;
-  }
-
-  .sub-menu .nav-item {
-    padding-left: 20px;
-  }
-
-  /* Optional: Customize submenu items */
-  .sub-menu .nav-link {
-    font-size: 14px;
-  }
-
+  
+    .nav-item .fa-plus {
+      float: right;
+      margin-left: 10px;
+    }
+  
+    .nav-item.active .fa-plus {
+      transform: rotate(60deg);
+    }
+  
+    .navbar {
+      margin-left: 300px; /* Ensure navbar is aligned with the sidebar */
+      background-color: #333; /* Dark background color for navbar */
+      padding-top: 5px; /* Reduced padding for smaller height */
+      padding-bottom: 5px; /* Reduced padding for smaller height */
+      height: 60px; /* Set a fixed height if necessary */
+    }
+  
+    .navbar .navbar-nav .nav-link {
+      color: #fff; /* White text color for navbar links */
+    }
+  
+    .navbar .navbar-nav .nav-link:hover {
+      color: #ff9800; /* Orange color on hover */
+    }
+  
+    .logout-button {
+      color: #ff9800; /* Orange color for logout button */
+    }
+  
+    .table thead th {
+      color: #ff9800; /* Orange color for headers */
+    }
+  
+    .table tbody td {
+      color: #fff; /* White text color for table body */
+    }
   </style>
 </head>
 <body>
   <div class="sidebar">
-    <h2>DANCO LTD Logistics System</h2>
+    <h2>DANCO LTD <br> LOGISTICS <br> SYSTEM</h2>
     <ul class="nav flex-column">
       <li class="nav-item">
         <a class="nav-link" id="trips-link" href="#">
@@ -130,88 +151,85 @@
           </li>
         </ul>
       </li>
-
       <li class="nav-item">
-        <a class="nav-link" id="expenses-link" href="{% url 'expenses'%}">
+        <a class="nav-link" href="{% url 'expenses' %}">
           <i class="fas fa-dollar-sign"></i> EXPENSES
         </a>
       </li>
-
       <li class="nav-item">
-        <a class="nav-link" id="fuel-link" href="{% url 'fuel_records'%}">
+        <a class="nav-link" href="{% url 'fuel_records' %}">
           <i class="fas fa-gas-pump"></i> FUEL
         </a>
       </li>
-
       <li class="nav-item">
         <a class="nav-link" id="maintenance-link" href="#">
-            <i class="fas fa-tools"></i> MAINTENANCE <i class="fas fa-plus" id="maintenance-plus"></i>
+          <i class="fas fa-tools"></i> MAINTENANCE <i class="fas fa-plus" id="maintenance-plus"></i>
         </a>
         <ul class="nav flex-column sub-menu" id="maintenance-submenu">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'garage'%}">
-                    <i class="fas fa-cogs"></i> Garage
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'maintenance'%}">
-                    <i class="fas fa-wrench"></i> Maintenance
-                </a>
-            </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'garage' %}">
+              <i class="fas fa-cogs"></i> Garage
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'maintenance' %}">
+              <i class="fas fa-wrench"></i> Maintenance
+            </a>
+          </li>
         </ul>
-    </li>
-    
-
-    
+      </li>
     </ul>
   </div>
-  <br><br>
 
-  <div class=" container navbar">
-    <h2></h2>
-    <button class="btn btn-danger">
-      <i class="fas fa-sign-out-alt"></i> Logout
-    </button>
-  </div>
-  
-  <div class="container mt-4">
-    <div class="row">
-      <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card bg-danger text-white shadow">
-          <div class="card-body">
-            <i class="fas fa-route"></i> Trips
-            <div class="text-white-50">Total: {{ total_trips }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card bg-secondary text-white shadow">
-          <div class="card-body">
-            <i class="fas fa-dollar-sign"></i> Expenses
-            <div class="text-white-50">Total: {{ total_expenses }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card bg-warning text-white shadow">
-          <div class="card-body">
-            <i class="fas fa-gas-pump"></i> Fuel
-            <div class="text-white-50">Total: {{ total_fuel }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card bg-dark text-white shadow">
-          <div class="card-body">
-            <i class="fas fa-tools"></i> Maintenance / Garage
-            <div class="text-white-50">Total: {{ total_maintenance }}</div>
-          </div>
-        </div>
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#"></a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link logout-button" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </li>
+        </ul>
       </div>
     </div>
+  </nav>
+
+  <div class="container">
+    <h2 class="alert-heading position-sticky"> Trips</h2>
+    <table class="table table-dark">
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Driver</th>
+          <th>Co-driver</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for trip in trips %}
+        <tr>
+          <td>{{ trip.vehicle }}</td>
+          <td>{{ trip.driver }}</td>
+          <td>{{ trip.co_driver }}</td>
+          <td>{{ trip.from_location }}</td>
+          <td>{{ trip.to_location }}</td>
+          <td>{{ trip.get_status_display }}</td>
+          <td>
+            {% if trip.status == 'ongoing' %}
+            <button class="btn btn-danger end-trip-btn" data-trip-id="{{ trip.id }}">End Trip</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center">No trips found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -220,15 +238,41 @@
   <script>
     document.getElementById('trips-link').addEventListener('click', function() {
       var submenu = document.getElementById('trips-submenu');
-      if (submenu.style.display === 'block') {
-        submenu.style.display = 'none';
-        document.getElementById('trips-plus').classList.remove('fa-minus');
-        document.getElementById('trips-plus').classList.add('fa-plus');
-      } else {
-        submenu.style.display = 'block';
-        document.getElementById('trips-plus').classList.remove('fa-plus');
-        document.getElementById('trips-plus').classList.add('fa-minus');
-      }
+      var plusIcon = document.getElementById('trips-plus');
+      submenu.style.display = (submenu.style.display === 'block') ? 'none' : 'block';
+      plusIcon.style.transform = (submenu.style.display === 'block') ? 'rotate(60deg)' : 'rotate(0deg)';
+    });
+
+    document.getElementById('maintenance-link').addEventListener('click', function() {
+      var submenu = document.getElementById('maintenance-submenu');
+      var plusIcon = document.getElementById('maintenance-plus');
+      submenu.style.display = (submenu.style.display === 'block') ? 'none' : 'block';
+      plusIcon.style.transform = (submenu.style.display === 'block') ? 'rotate(60deg)' : 'rotate(0deg)';
+    });
+
+    document.querySelectorAll('.end-trip-btn').forEach(function(button) {
+      button.addEventListener('click', function() {
+        const tripId = this.dataset.tripId;
+        if (confirm('Are you sure you want to end this trip?')) {
+          fetch(`/end-trip/${tripId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('Trip ended successfully.');
+              window.location.reload();  // Reload the page to reflect changes
+            } else {
+              alert('Failed to end the trip: ' + data.error);
+            }
+          })
+          .catch(error => console.error('Error:', error));
+        }
+      });
     });
   </script>
 </body>

@@ -123,33 +123,7 @@
             </table>
 
             <!-- Garage History Section -->
-            <h2>Garage History</h2>
-                <div id="garage-history">
-                    {% for regno, garages in grouped_garages.items %}
-                    <button class="collapsible">{{ regno }}</button>
-                    <div class="content-history">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Checked In At</th>
-                                    <th>Checked Out At</th>
-                                    <th>Issue Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for garage in garages %}
-                                <tr>
-                                    <td>{{ garage.checked_in_at }}</td>
-                                    <td>{{ garage.checked_out_at }}</td>
-                                    <td>{{ garage.issue_description }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% endfor %}
-                </div>
-
+            
             <!-- Modals -->
             <div class="modal fade" id="garageModal" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">

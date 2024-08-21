@@ -80,7 +80,7 @@ h1 {
 }
 
 .main-content {
-  margin-left: 1000px; /* Ensure content is shifted to the right */
+  margin-left: 10px; /* Ensure content is shifted to the right */
   padding: 20px;
 }
 

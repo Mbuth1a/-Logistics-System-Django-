@@ -200,43 +200,43 @@
             }
         
             function filterTrips(tripsResponse, assignedTripIds) {
-                let tripsList = $('#tripsList');
-                tripsList.empty();
-                tripsResponse.forEach(function(trip) {
-                    if (!assignedTripIds.includes(trip.id)) {
-                        let tableRow = `<tr data-id="${trip.id}">
-                                        <td>${trip.id}</td>
-                                        <td>${trip.vehicle}</td>
-                                        <td>${trip.date}</td>
-                                        <td>${trip.from_location}</td>
-                                        <td>${trip.stops}</td>
-                                        <td>${trip.to_location}</td>
-                                        <td>${trip.driver}</td>
-                                        <td>${trip.co_driver}</td>
-                                        <td><button class="btn btn-primary" onclick="openModal(${trip.id})">Assign Expense</button></td>
-                                    </tr>`;
-                        tripsList.append(tableRow);
-                    }
-                });
-            }
+    let tripsList = $('#tripsList');
+    tripsList.empty();
+    tripsResponse.forEach(function(trip) {
+        if (!assignedTripIds.includes(trip.id)) {
+            let tableRow = `<tr data-id="${trip.id}">
+                            <td>${trip.id || 'N/A'}</td>
+                            <td>${trip.vehicle || 'N/A'}</td>
+                            <td>${trip.date || 'N/A'}</td>
+                            <td>${trip.from_location || 'N/A'}</td>
+                            <td>${trip.stops || 'N/A'}</td>
+                            <td>${trip.to_location || 'N/A'}</td>
+                            <td>${trip.driver || 'N/A'}</td>
+                            <td>${trip.co_driver || 'N/A'}</td>
+                            <td><button class="btn btn-primary" onclick="openModal(${trip.id})">Assign Expense</button></td>
+                        </tr>`;
+            tripsList.append(tableRow);
+        }
+    });
+}
         
             function populateDoneExpenses(expensesResponse) {
                 let expensesList = $('#expensesList');
                 expensesList.empty();
                 expensesResponse.forEach(function(expense) {
                     let tableRow = `<tr>
-                                    <td>${expense.trip_id}</td>
-                                    <td>${expense.vehicle}</td>
-                                    <td>${expense.date}</td>
-                                    <td>${expense.from_location}</td>
-                                    <td>${expense.stops}</td>
-                                    <td>${expense.to_location}</td>
-                                    <td>${expense.driver_name}</td>
-                                    <td>${expense.co_driver_name}</td>
-                                    <td>${expense.driver_expense}</td>
-                                    <td>${expense.co_driver_expense}</td>
-                                </tr>`;
-                    expensesList.append(tableRow);
+                        <td>${expense.trip_id || 'N/A'}</td>
+                        <td>${expense.vehicle || 'N/A'}</td>
+                        <td>${expense.date || 'N/A'}</td>
+                        <td>${expense.from_location || 'N/A'}</td>
+                        <td>${expense.stops || 'N/A'}</td>
+                        <td>${expense.to_location || 'N/A'}</td>
+                        <td>${expense.driver_name || 'N/A'}</td>
+                        <td>${expense.co_driver_name || 'N/A'}</td>
+                        <td>${expense.driver_expense || 'N/A'}</td>
+                        <td>${expense.co_driver_expense || 'N/A'}</td>
+                    </tr>`;
+        expensesList.append(tableRow);
                 });
             }
             // Remaining functions remain unchanged
@@ -253,14 +253,14 @@
                 url: url,
                 method: 'GET',
                 success: function(trip) {
-                    $('#tripId').val(trip.id);
-                    $('#regNo').val(trip.vehicle);
-                    $('#driverName').val(trip.driver);
-                    $('#coDriverName').val(trip.co_driver);
-                    $('#tripDate').val(trip.date);
-                    $('#fromLocation').val(trip.from_location);
-                    $('#Stops').val(trip.stops);
-                    $('#toLocation').val(trip.to_location);
+                    $('#tripId').val(trip.id || '');
+                    $('#regNo').val(trip.vehicle || '');
+                    $('#driverName').val(trip.driver || '');
+                    $('#coDriverName').val(trip.co_driver || '');
+                    $('#tripDate').val(trip.date || '');
+                    $('#fromLocation').val(trip.from_location || '');
+                    $('#Stops').val(trip.stops || '');
+                    $('#toLocation').val(trip.to_location || '');
                     $('#expenseModal').modal('show');
                 },
                 error: function(error) {
