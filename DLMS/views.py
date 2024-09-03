@@ -2,19 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
 from .forms import DriverForm,VehicleForm, CoDriverForm, ProductForm
 from .models import Driver, Vehicle, CoDriver, Product, Product
 from django.contrib import messages
-from django.contrib.auth import authenticate, login as auth_login
-
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.decorators import login_required
-
-
+from django.contrib.auth import authenticate, login 
+from django.contrib.auth.decorators import login_required, user_passes_test
 logger = logging.getLogger(__name__)
 # Create your views here.
 @login_required
+@user_passes_test(lambda u: u.groups.filter(name='ADMINS').exists())
 def dashboard(request):
     total_drivers = Driver.objects.count()
     total_vehicles = Vehicle.objects.count()
@@ -240,6 +236,7 @@ def inventory(request):
         stock_code = request.POST.get('stock_code')
         product = request.POST.get('product')
         unit_of_measure = request.POST.get('unit_of_measure')
+        metres = request.POST.get('metres')
         weight_per_metre = request.POST.get('weight_per_metre')
 
         new_product = Product.objects.create(
@@ -247,6 +244,7 @@ def inventory(request):
             stock_code=stock_code,
             product=product,
             unit_of_measure=unit_of_measure,
+            metres = metres,
             weight_per_metre=weight_per_metre
         )
 
@@ -255,6 +253,7 @@ def inventory(request):
             'stock_code': new_product.stock_code,
             'product': new_product.product,
             'unit_of_measure': new_product.unit_of_measure,
+            'metres': new_product.metres,
             'weight_per_metre': new_product.weight_per_metre
         }})
     elif request.method == 'GET':
@@ -271,6 +270,7 @@ def get_products(request):
             'stock_code': product.stock_code,
             'product': product.product,
             'unit_of_measure': product.unit_of_measure,
+            'metres': product.metres,
             'weight_per_metre': product.weight_per_metre
         } for product in products
     ]
@@ -278,37 +278,25 @@ def get_products(request):
 
 
 # SIGN UP VIEW
-
-def login(request):
+def custom_login(request):
     if request.method == 'POST':
-        staff_no = request.POST.get('username')
+        username = request.POST.get('username')
         password = request.POST.get('password')
-        user = authenticate(request, username=staff_no, password=password)
-        
-        if user is not None and user.is_active:
-            auth_login(request, user)
-            if user.role == 'ADMIN':
-                return redirect('/dashboard/')
-            elif user.role == 'USER':
-                return redirect('/dtms_dashboard/')
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            # Redirect based on group membership
+            if user.groups.filter(name='ADMINS').exists():
+                return redirect('dashboard')
+            elif user.groups.filter(name='STAFFS').exists():
+                return redirect('dtms_dashboard')
             else:
-                return redirect('/login/')
+                # Optionally add a message here if no group match
+                messages.error(request, "You are not authorized to access any dashboard.")
+                return redirect('login')  # Fallback URL
         else:
-            logger.debug(f"Login failed for staff_no: {staff_no}")
-            return render(request, 'login.html', {'error': 'Invalid credentials'})
+            messages.error(request, "Invalid username or password.")
+            return redirect('login')
+
     return render(request, 'login.html')
-def signup(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            auth_login(request, user)
-            if user.role == 'ADMIN':
-                return redirect('/dashboard/')
-            elif user.role == 'USER':
-                return redirect('/dtms_dashboard/')
-            else:
-                return redirect('/login/')
-    else:
-        form = SignUpForm()
-    return render(request, 'signup.html', {'form': form})

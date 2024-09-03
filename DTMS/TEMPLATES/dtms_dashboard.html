@@ -112,9 +112,19 @@
       color: #ff9800; /* Orange color on hover */
     }
   
-    .logout-button {
-      color: #ff9800; /* Orange color for logout button */
-    }
+    /* Existing styles */
+  
+  .logout-button {
+    color: #ff9800; /* Orange color for logout button */
+    background-color: transparent; /* Transparent background for default state */
+    border: 1px solid #ff9800; /* Border color to match the text color */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for color changes */
+  }
+  
+  .logout-button:hover {
+    color: #fff; /* White text color on hover */
+    background-color: #ff9800; /* Orange background on hover */
+  }
   
     .table thead th {
       color: #ff9800; /* Orange color for headers */
@@ -144,11 +154,7 @@
               <i class="fas fa-tasks"></i> Load Trip
             </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <i class="fas fa-file-alt"></i> END TRIPS
-            </a>
-          </li>
+          
         </ul>
       </li>
       <li class="nav-item">
@@ -187,7 +193,9 @@
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <a class="nav-link logout-button" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <button class="btn btn-danger" onclick="logoutUser()">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
           </li>
         </ul>
       </div>
@@ -195,7 +203,7 @@
   </nav>
 
   <div class="container">
-    <h2 class="alert-heading position-sticky"> Trips</h2>
+    <h2 class="alert-heading position-sticky">Ongoing Trips</h2>
     <table class="table table-dark">
       <thead>
         <tr>
@@ -203,35 +211,83 @@
           <th>Driver</th>
           <th>Co-driver</th>
           <th>From</th>
+          <th>Stops</th>
           <th>To</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Day</th>
+          <th>Description</th>
+          <th>Estimated Distance</th>
           <th>Status</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        {% for trip in trips %}
+        {% for trip in ongoing_trips %}
         <tr>
           <td>{{ trip.vehicle }}</td>
           <td>{{ trip.driver }}</td>
           <td>{{ trip.co_driver }}</td>
           <td>{{ trip.from_location }}</td>
+          <td>{{ trip.stops|default_if_none:"-" }}</td>
           <td>{{ trip.to_location }}</td>
+          <td>{{ trip.date }}</td>
+          <td>{{ trip.time }}</td>
+          <td>{{ trip.day }}</td>
+          <td>{{ trip.get_description_display }}</td>
+          <td>{{ trip.est_distance }}</td>
           <td>{{ trip.get_status_display }}</td>
           <td>
-            {% if trip.status == 'ongoing' %}
+            
+            <button class="btn btn-danger delete-trip-btn" data-trip-id="{{ trip.id }}">Delete</button>
             <button class="btn btn-danger end-trip-btn" data-trip-id="{{ trip.id }}">End Trip</button>
-            {% endif %}
+            
           </td>
         </tr>
-        {% empty %}
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2 class="alert-heading position-sticky">Ended Trips</h2>
+    <table class="table table-dark">
+      <thead>
         <tr>
-          <td colspan="7" class="text-center">No trips found.</td>
+          <th>Vehicle</th>
+          <th>Driver</th>
+          <th>Co-driver</th>
+          <th>From</th>
+          <th>Stops</th>
+          <th>To</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Day</th>
+          <th>Description</th>
+          <th>Estimated Distance</th>
+          <th>Status</th>
+          <th>Time Ended</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for trip in ended_trips %}
+        <tr>
+          <td>{{ trip.vehicle }}</td>
+          <td>{{ trip.driver }}</td>
+          <td>{{ trip.co_driver }}</td>
+          <td>{{ trip.from_location }}</td>
+          <td>{{ trip.stops|default_if_none:"-" }}</td>
+          <td>{{ trip.to_location }}</td>
+          <td>{{ trip.date }}</td>
+          <td>{{ trip.time }}</td>
+          <td>{{ trip.day }}</td>
+          <td>{{ trip.get_description_display }}</td>
+          <td>{{ trip.est_distance }}</td>
+          <td>{{ trip.get_status_display }}</td>
+          <td>{{ trip.end_time }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -274,6 +330,103 @@
         }
       });
     });
+    document.querySelectorAll('.end-trip-btn').forEach(function(button) {
+      button.addEventListener('click', function() {
+        const tripId = this.dataset.tripId;
+        if (confirm('Are you sure you want to end this trip?')) {
+          fetch(`/end-trip/${tripId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('Trip ended successfully.');
+              window.location.reload();  // Reload the page to reflect changes
+            } 
+            
+          })
+          .catch(error => console.error('Error:', error));
+        }
+      });
+    });
+  
+    // Function to handle the "Edit Trip" button click
+    document.querySelectorAll('.edit-trip-btn').forEach(function(button) {
+      button.addEventListener('click', function() {
+        const tripId = this.dataset.tripId;
+        // Redirect to the trip edit page
+        window.location.href = `/edit-trip/${tripId}/`;  // Change this URL to match your edit view
+      });
+    });
+  
+    // Function to handle the "Delete Trip" button click
+    document.querySelectorAll('.delete-trip-btn').forEach(function(button) {
+      button.addEventListener('click', function() {
+        const tripId = this.dataset.tripId;
+        if (confirm('Are you sure you want to delete this trip? This action is irreversible.')) {
+          fetch(`/delete-trip/${tripId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('Trip deleted successfully.');
+              window.location.reload();  // Reload the page to reflect changes
+            } else {
+              alert('Failed to delete the trip: ' + data.error);
+            }
+          })
+          .catch(error => console.error('Error:', error));
+        }
+      });
+    });
+    function logoutUser() {
+      // Redirect to the logout URL in Django which logs out the user and then redirects to login page
+      window.location.href = "{% url 'login' %}";
+    }
+    function handleLogout() {
+    fetch('/logout/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')  // Include CSRF token for POST requests
+      },
+    })
+    .then(response => {
+      if (response.ok) {
+        window.location.href = '/login/';  // Redirect to the login page
+      } else {
+        console.error('Logout failed');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+  // Function to get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
   </script>
 </body>
 </html>

@@ -7,13 +7,43 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   {% load static %}
-  <link rel="stylesheet" href="{% static 'reports.css' %}"> <!-- Include the new theme CSS file -->
+  <link rel="stylesheet" href="{% static 'reports.css' %}">
+  <style>
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      position: fixed;
+      background-color: #343a40;
+      color: white;
+      padding: 20px;
+    }
+
+    .container {
+      margin-left: 270px;
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      margin-top: 20px;
+    }
+
+    .btn-link {
+      color: white;
+      text-decoration: none;
+    }
+
+    .btn-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
   <div class="sidebar">
     <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
   </div>
-  <div class="container mt-1 col-md-10 main-content">
+  <div class="container mt-4 col-md-10">
     <h1 class="text-center">
         Reports
         <i class="fas fa-file-alt ml-2"></i>
@@ -54,7 +84,7 @@
             <tbody>
               {% for driver in drivers %}
               <tr>
-                <td>{{ forloop.counter }}</td> <!-- Start numbering from 1 -->
+                <td>{{ forloop.counter }}</td>
                 <td>{{ driver.employee_number }}</td>
                 <td>{{ driver.full_name }}</td>
                 <td>{{ driver.license_number }}</td>
@@ -87,7 +117,7 @@
           </div>
         </h2>
       </div>
-      <div id="vehiclesCollapse" class="collapse" aria-labelledby="vehiclesHeading">
+      <div id="vehiclesCollapse" class="collapse show" aria-labelledby="vehiclesHeading">
         <div class="card-body">
           <table class="table table-striped">
             <thead>
@@ -103,7 +133,7 @@
             <tbody>
               {% for vehicle in vehicles %}
               <tr>
-                <td>{{ forloop.counter }}</td> <!-- Start numbering from 1 -->
+                <td>{{ forloop.counter }}</td>
                 <td>{{ vehicle.vehicle_regno }}</td>
                 <td>{{ vehicle.vehicle_model }}</td>
                 <td>{{ vehicle.vehicle_type }}</td>
@@ -136,14 +166,14 @@
           </div>
         </h2>
       </div>
-      <div id="coDriversCollapse" class="collapse" aria-labelledby="coDriversHeading">
+      <div id="coDriversCollapse" class="collapse show" aria-labelledby="coDriversHeading">
         <div class="card-body">
           <table class="table table-striped">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Employee Number</th>
-                <th>Name</th>
+                <th>Full Name</th>
                 <th>Phone Number</th>
                 <th>Email</th>
               </tr>
@@ -151,7 +181,7 @@
             <tbody>
               {% for co_driver in co_drivers %}
               <tr>
-                <td>{{ forloop.counter }}</td> <!-- Start numbering from 1 -->
+                <td>{{ forloop.counter }}</td>
                 <td>{{ co_driver.employee_number }}</td>
                 <td>{{ co_driver.co_driver_name }}</td>
                 <td>{{ co_driver.phone_number }}</td>
@@ -192,23 +222,18 @@
         {% endfor %}
         fileName = 'vehicles.csv';
       } else if (section === 'co_drivers') {
-        csv = 'ID,Employee Number,Name,Phone Number,Email\n';
+        csv = 'ID,Employee Number,Full Name,Phone Number,Email\n';
         {% for co_driver in co_drivers %}
         csv += '{{ forloop.counter }},{{ co_driver.employee_number }},{{ co_driver.co_driver_name }},{{ co_driver.phone_number }},{{ co_driver.email_address }}\n';
         {% endfor %}
         fileName = 'co_drivers.csv';
       }
-      
-      var hiddenElement = document.createElement('a');
-      hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
-      hiddenElement.target = '_blank';
-      hiddenElement.download = fileName;
-      hiddenElement.click();
-    }
 
-    function goToDashboard() {
-      window.location.href = "{% url 'dashboard' %}";
-    }
-  </script>
-</body>
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement("a"); var url = URL.createObjectURL(blob); link.setAttribute("href", url); link.setAttribute("download", fileName); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+      function goToDashboard() {
+        window.location.href = "{% url 'dashboard' %}";
+      }
+    </script>
+   </body> 
 </html>

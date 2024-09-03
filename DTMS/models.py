@@ -25,7 +25,13 @@ class Trip(models.Model):
     stops = models.CharField(max_length=200, null=True, blank=True)
     to_location = models.CharField(max_length=100)
     est_distance = models.CharField(max_length=100)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='ongoing')  # New status field
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='ongoing') 
+    end_time = models.DateTimeField(null=True, blank=True)
+    
+    def end_trip(self):
+        self.status = 'ended'
+        self.end_time = timezone.now()
+        self.save()
     
     def __str__(self):
         return f"|{self.vehicle}|   |{self.from_location}|  |{self.stops}|  |{self.to_location}| |{self.driver}|  |{self.co_driver}|"

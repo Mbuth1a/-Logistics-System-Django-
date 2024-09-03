@@ -4,27 +4,39 @@ from DTMS.forms import*
 from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
-from django.contrib import messages
-import datetime
-from django.http import HttpResponseServerError
-from datetime import timedelta
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET,require_POST
 import logging
 import json
-
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.views import View
+from .models import Trip, Expenses
+from .serializers import TripSerializer, ExpensesSerializer
 logger = logging.getLogger(__name__)
-
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth import logout
 # Create your views here.
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name='STAFFS').exists())
 def dtms_dashboard(request):
-    return render(request, 'dtms_dashboard.html')
+    ongoing_trips = Trip.objects.filter(status='ongoing')
+    ended_trips = Trip.objects.filter(status='ended')
+    
+    context = {
+        'ongoing_trips': ongoing_trips,
+        'ended_trips': ended_trips,
+    }
+    return render(request, 'dtms_dashboard.html' , context)
 
 
-
+@login_required
 def create_trip(request):
-    drivers = Driver.objects.all()
-    co_drivers = CoDriver.objects.all()
-    vehicles = Vehicle.objects.all()
+    # Only fetch drivers, co_drivers, and vehicles that are not currently assigned to an ongoing trip
+    drivers = Driver.objects.exclude(trip__status='ongoing').distinct()
+    co_drivers = CoDriver.objects.exclude(trip__status='ongoing').distinct()
+    vehicles = Vehicle.objects.exclude(trip__status='ongoing').distinct()
 
     # Retrieve the choices for the 'description' field from the Trip model
     description_choices = Trip._meta.get_field('description').choices
@@ -47,6 +59,7 @@ def create_trip(request):
         'description_choices': description_choices,  # Pass the choices to the template
         'form': form
     })
+
 def search_drivers(request):
     query = request.GET.get('query', '')
     drivers = Driver.objects.filter(name__icontains=query).values('id', 'name')
@@ -63,60 +76,137 @@ def load_trip(request):
             quantities = request.POST.getlist('quantities')
             weights = request.POST.getlist('weights')
             
-            # Save the LoadTrip instance and associated products
+            # Create the LoadTrip instance
             load_trip_instance = LoadTrip.objects.create(trip=trip)
+
+            # Add products to the LoadTrip instance with quantity and weight
             for product_id, quantity, weight in zip(products, quantities, weights):
                 product = Product.objects.get(id=product_id)
-                load_trip_instance.products.add(product, through_defaults={
-                    'quantity': quantity,
-                    'total_weight': weight
-                })
+                LoadTripProduct.objects.create(
+                    load_trip=load_trip_instance,
+                    product=product,
+                    quantity=quantity,
+                    total_weight=weight
+                )
             
-            return redirect('load_trip')  # Redirect to a success page or wherever you want
+            return redirect('dtms_dashboard')  # Redirect to a success page or reload the page after successful trip loading
     else:
         form = LoadTripForm()
-    
-    # Fetch trips and products for the form
-    trips = Trip.objects.all()
+
+    # Fetch trips that do not have products loaded (only empty trips)
+    empty_trips = Trip.objects.exclude(id__in=LoadTripProduct.objects.values('load_trip_id'))
+
+    # Fetch all products for the dropdown
     products = Product.objects.all()
+
+    context = {
+        'form': form,
+        'trips': empty_trips,  # Only empty trips are passed to the template
+        'products': products
+    }
+
+    return render(request, 'load_trip.html', context)
+
+def trip_products(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    products = LoadTripProduct.objects.filter(trip=trip).select_related('product')
+    products_data = [{
+        'product_name': p.product.product,
+        'quantity': p.quantity,
+        'total_weight': p.total_weight,
+    } for p in products]
+    
+    trip_data = {
+        'vehicle': trip.vehicle,
+        'driver_name': trip.driver_name,
+        'co_driver_name': trip.co_driver_name,
+        'date': trip.date,
+        'time': trip.time,
+        'description': trip.description,
+        'from_location': trip.from_location,
+        'to_location': trip.to_location,
+        'est_distance': trip.est_distance,
+        'products': products_data
+    }
+    
+    return JsonResponse(trip_data)
+def load_trip_products(request, trip_id):
+    # Fetch the LoadTripProduct entries for the given trip_id
+    trip = LoadTrip.objects.filter(trip_id=trip_id)
+    products = LoadTripProduct.objects.filter(load_trip_id=trip_id)
+    
+    context = {
+        'products': products,
+        'trip': trip
+    }
+    
+    return render(request, 'dtms_dashboard.html', context)
+
+def edit_trip(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    
+    if request.method == 'POST':
+        form = TripForm(request.POST, instance=trip)
+        if form.is_valid():
+            form.save()
+            return redirect('dtms_dashboard')  # Assuming 'ongoing_trips' is the name of the trip listing view
+    else:
+        form = TripForm(instance=trip)
     
     context = {
         'form': form,
-        'trips': trips,
-        'products': products
+        'is_edit': True,  # You can use this in the template to determine if it is an edit
     }
     
-    return render(request, 'load_trip.html', context)
-def load_trips(request):
-    trips = Trip.objects.all()  # Fetch all trips from the database
-    context = {
-        'trips': trips,
-    }
-    return render(request, 'dtms_dashboard.html', context)
+    return render(request, 'create_trip.html', context)  # Use the same template as for creating a trip
+
+
+@require_POST
+def delete_trip(request, trip_id):
+    try:
+        trip = get_object_or_404(Trip, id=trip_id)
+        trip.delete()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
 
 def end_trip(request, trip_id):
     if request.method == 'POST':
-        try:
-            trip = Trip.objects.get(id=trip_id)
-            trip.status = 'ended'  # Assuming 'ended' is the status for a finished trip
-            trip.save()  # Save the status update
-            return JsonResponse({'success': True})
-        except Trip.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Trip not found'})
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
-
+        trip = get_object_or_404(Trip, id=trip_id)
+        if trip.status == 'ongoing':
+            trip.end_trip()  # Use the method defined in the model to end the trip
+            return JsonResponse({'success': True, 'end_time': trip.end_time})
+        else:
+            return JsonResponse({'success': False, 'error': 'Trip is already ended.'})
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 # Filtering available objects
 def get_trip_data(request):
-    trips = Trip.objects.all()
-    drivers = {trip.driver.id for trip in trips}
-    co_drivers = {trip.co_driver.id for trip in trips}
-    vehicles = {trip.vehicle.id for trip in trips}
-
-    return JsonResponse({
-        'drivers': list(drivers),
-        'co_drivers': list(co_drivers),
-        'vehicles': list(vehicles),
-    })
+    # Fetch drivers, co_drivers, and vehicles that are not in ongoing trips
+    ongoing_trips = Trip.objects.filter(status='ongoing')
+    
+    ongoing_drivers = ongoing_trips.values_list('driver_id', flat=True)
+    ongoing_co_drivers = ongoing_trips.values_list('co_driver_id', flat=True)
+    ongoing_vehicles = ongoing_trips.values_list('vehicle_id', flat=True)
+    
+    # Fetch vehicles that are checked in and not checked out
+    checked_in_vehicles = Garage.objects.filter(
+        checked_in_at__isnull=False, 
+        checked_out_at__isnull=True
+    ).values_list('vehicle_id', flat=True)
+    
+    available_drivers = Driver.objects.exclude(id__in=ongoing_drivers)
+    available_co_drivers = CoDriver.objects.exclude(id__in=ongoing_co_drivers)
+    available_vehicles = Vehicle.objects.exclude(id__in=ongoing_vehicles).exclude(id__in=checked_in_vehicles)
+    
+    # Prepare the data for JSON response
+    data = {
+        'drivers': [{'id': driver.id, 'name': str(driver)} for driver in available_drivers],
+        'co_drivers': [{'id': co_driver.id, 'name': str(co_driver)} for co_driver in available_co_drivers],
+        'vehicles': [{'id': vehicle.id, 'name': str(vehicle)} for vehicle in available_vehicles]
+    }
+    
+    return JsonResponse(data)
 
 def get_trips(request):
     trips = Trip.objects.all()
@@ -142,58 +232,90 @@ def get_trips(request):
 def expenses(request):
     return render(request, 'expenses.html')
 
+
+# API'S to handle expenses data
+class TripListView(APIView):
+    def get(self, request):
+        trips = Trip.objects.all()
+        serializer = TripSerializer(trips, many=True)
+        return Response(serializer.data)
+    
 def fetch_trips(request):
-    trips = Trip.objects.all().values(
-        'id', 'vehicle__vehicle_regno', 'date', 'from_location', 'stops', 'to_location', 
-        'driver__name', 'co_driver__name'
-    )
-    return JsonResponse({'trips': list(trips)})
+    assigned_trip_ids = Expenses.objects.values_list('trip_id', flat=True)
+    trips = Trip.objects.exclude(id__in=assigned_trip_ids).values('id', 'date', 'time', 'day', 'description', 'driver', 'co_driver', 'vehicle', 'from_location', 'stops', 'to_location')
+    return JsonResponse(list(trips), safe=False)
 
-def get_trip_details(request, trip_id):
-    try:
-        trip = Trip.objects.get(id=trip_id)
-        trip_data = {
-            'id': trip.id,
-            'date': trip.date.isoformat(),
-            'time': trip.time.isoformat(),
-            'day': trip.day,
-            'description': trip.description,
-            'driver': trip.driver.full_name,
-            'co_driver': trip.co_driver.co_driver_name,
-            'vehicle': trip.vehicle.vehicle_regno,
-            'from_location': trip.from_location,
-            'stops': trip.stops,
-            'to_location': trip.to_location,
-            'est_distance': trip.est_distance,
-        }
-        return JsonResponse(trip_data)
-    except Trip.DoesNotExist:
-        return JsonResponse({'error': 'Trip not found'}, status=404)
-@csrf_exempt
-def assign_expenses(request):
-    if request.method == 'POST':
-        trip_id = request.POST.get('tripId')
-        driver_expense = request.POST.get('driverExpense')
-        co_driver_expense = request.POST.get('coDriverExpense')
+class ExpenseListView(APIView):
+    def get(self, request):
+        expenses = Expenses.objects.all()
+        serializer = ExpensesSerializer(expenses, many=True)
+        return Response(serializer.data)
 
-        trip = get_object_or_404(Trip, id=trip_id)
+    def post(self, request):
+        serializer = ExpensesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        expense = Expenses.objects.create(
+
+def trip_detail_api(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id)
+    trip_data = {
+        'id': trip.id,
+        'date': trip.date,
+        'time': trip.time,
+        'day': trip.day,
+        'description': trip.description,
+        'driver': trip.driver.full_name,  
+        'co_driver': trip.co_driver.co_driver_name,  
+        'vehicle': trip.vehicle.vehicle_regno, 
+        'from_location': trip.from_location,
+        'stops': trip.stops,
+        'to_location': trip.to_location,
+        'est_distance': trip.est_distance
+    }
+    return JsonResponse(trip_data)
+
+def expenses_list(request):
+    if request.method == 'GET':
+        expenses = Expenses.objects.select_related('trip').all()
+        expenses_data = list(expenses.values(
+            'id', 'trip__id', 'driver_expense', 'co_driver_expense', 'created_at'
+        ))
+        return JsonResponse(expenses_data, safe=False)
+def delete_expense(request, expense_id):
+    if request.method == 'DELETE':
+        try:
+            expense = get_object_or_404(Expenses, id=expense_id)
+            expense.delete()
+            return JsonResponse({'message': 'Expense deleted successfully'}, status=204)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)    
+
+class AssignExpenseView(View):
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        trip_id = data.get('trip')
+        driver_expense = data.get('driver_expense')
+        co_driver_expense = data.get('co_driver_expense')
+
+        # Get the trip instance
+        try:
+            trip = Trip.objects.get(id=trip_id)
+        except Trip.DoesNotExist:
+            return JsonResponse({'error': 'Trip not found'}, status=404)
+
+        # Create an Expense record
+        Expenses.objects.create(
             trip=trip,
             driver_expense=driver_expense,
             co_driver_expense=co_driver_expense
         )
 
-        return JsonResponse({'status': 'success'})
+        return JsonResponse({'success': 'Expense assigned successfully'})
 
-    return JsonResponse({'status': 'fail'}, status=400)
-
-def fetch_assigned_expenses(request):
-    expenses = Expenses.objects.all().values()  # Query to get all expenses
-    expenses_list = list(expenses)  # Convert queryset to a list
-    return JsonResponse({'expenses': expenses_list})
-
-
+# FUEL VIEWS
 def fuel(request):
     trips = Trip.objects.filter(fuel__isnull=True)  # Filter trips with no fuel record
     return render(request, 'fuel_records.html', {'trips': trips})
@@ -373,6 +495,11 @@ def maintenance(request):
     schedule_data = []
     for schedule in schedules:
         days_remaining = (schedule.maintenance_date - now).days
+        days_remaining = (schedule.inspection_date - now).days
+        days_remaining = (schedule.insurance_date - now).days
+        days_remaining = (schedule.speed_governor_date - now).days
+        days_remaining = (schedule.kenha_permit_date - now).days
+        
         if days_remaining > 60:
             color_class = 'card-green'
         elif days_remaining > 30:
@@ -447,16 +574,20 @@ def get_schedule(request):
     }
     return JsonResponse(data)
 
-def delete_schedule(request):
-    if request.method == 'POST':
-        schedule_id = request.POST.get('schedule_id')
-        schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
-        vehicle_id = schedule.vehicle.id  # Get the vehicle id before deletion
-        schedule.delete()
-        
-        # Check if the vehicle has any remaining schedules
-        remaining_schedules = MaintenanceSchedule.objects.filter(vehicle_id=vehicle_id).exists()
 
-        return JsonResponse({'success': True, 'vehicle_id': vehicle_id, 'has_remaining_schedules': remaining_schedules})
-    
-    return JsonResponse({'success': False})
+@require_POST
+def delete_schedule(request, id):
+    try:
+        schedule = MaintenanceSchedule.objects.get(id=id)  # Ensure correct variable usage
+        schedule.delete()
+        return JsonResponse({'status': 'success'})
+    except MaintenanceSchedule.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Schedule does not exist'})
+
+
+# Logout
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        return JsonResponse({'message': 'Logged out successfully'})
+    return redirect('login')

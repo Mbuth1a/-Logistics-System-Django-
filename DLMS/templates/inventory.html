@@ -88,7 +88,7 @@
     }
     
     .main-content {
-      margin-left: 210px; /* Adjust margin to avoid overlap with sidebar */
+      margin-left: 20px; /* Adjust margin to avoid overlap with sidebar */
       padding: 20px;
     }
     
@@ -122,7 +122,7 @@
   <div class="sidebar">
     <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
   </div>
-  <div class="container mt-1 col-md-10">
+  <div class="container-fluid mt-1 col-md-10">
     <h1 class="text-center"><b><u><i>DLMS Inventory Management</b></u></i></h1>
 
     <!-- Search Bar -->
@@ -182,6 +182,10 @@
                 </select>
               </div>
               <div class="form-group">
+                <label for="metres">Length</label>
+                <input type="number" step="0.01" class="form-control" id="metres" name="metres" required>
+              </div>
+              <div class="form-group">
                 <label for="weight_per_metre">Weight/Metre</label>
                 <input type="number" step="0.01" class="form-control" id="weight_per_metre" name="weight_per_metre" required>
               </div>
@@ -203,6 +207,7 @@
           <th>Stock Code</th>
           <th>Product</th>
           <th>Unit of Measure</th>
+          <th>Metres</th>
           <th>Weight/Metre</th>
         </tr>
       </thead>
@@ -277,6 +282,7 @@
           <td>${product.stock_code}</td>
           <td>${product.product}</td>
           <td>${product.unit_of_measure}</td>
+          <td>${product.metres}</td>
           <td>${product.weight_per_metre}</td>
         </tr>`;
     }

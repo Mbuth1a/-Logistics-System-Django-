@@ -3,113 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DANCO-LOGISTICS | Login</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Login</title>
     <style>
-        body, html {
+        body {
             margin: 0;
             padding: 0;
-            height: 100%;
-            background: url('/media/b.jpg') no-repeat center center fixed;
+            height: 100vh;
+            background: url('/media/fint1.png') no-repeat center center;
             background-size: cover;
-        }
-        
-        .container {
-            height: 100%;
+            background-attachment: fixed;
             display: flex;
-            align-items: center;
             justify-content: center;
-        }
-        
-        .form-container {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-            max-width: 400px;
-            width: 100%;
+            align-items: center;
+            font-family: Arial, sans-serif;
             position: relative;
         }
-        
-        h1 {
-            margin-bottom: 20px;
-            font-size: 24px;
+
+        h2 {
             text-align: center;
-            color: #333;
+            color: white;
         }
-        
-        .form-group {
+
+        form {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            width: 300px;
+        }
+
+        form div {
             margin-bottom: 15px;
         }
-        
-        .btn-primary {
-            background-color: #007BFF;
-            border-color: #007BFF;
+
+        form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
         }
-        
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #004b9b;
+
+        form input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
-        
-        .alert {
-            margin-top: 20px;
-        }
-        
-        .eye-icon {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: white;
             cursor: pointer;
-            color: #007BFF;
         }
-        
-        .password-container {
-            position: relative;
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .error-popup {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color:orangered;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none; 
+            z-index: 100;
+            font-size: 20px;
+            animation: fade-in 0.7s ease;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        ul {
+            display: none; 
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="form-container">
-            <h1 class="text-center mb-4">Login</h1>
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="username">Staff No:</label>
-                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter Staff No" required>
-                </div>
-                <div class="form-group password-container">
-                    <label for="password">Password:</label>
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
-                    <span class="eye-icon" id="togglePassword">
-                        <i class="fa fa-eye"></i>
-                    </span>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Login</button>
-                {% if error %}
-                <div class="alert alert-danger mt-3">{{ error }}</div>
-                {% endif %}
-            </form>
-        </div>
-    </div>
 
-    <!-- Scripts -->
+    <!-- Error pop-up -->
+    <div id="errorPopup" class="error-popup"></div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+
     <script>
-        // Toggle password visibility
-        document.getElementById('togglePassword').addEventListener('click', function () {
-            var passwordField = document.getElementById('password');
-            var type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordField.setAttribute('type', type);
-            var icon = this.querySelector('i');
-            icon.classList.toggle('fa-eye');
-            icon.classList.toggle('fa-eye-slash');
-        });
+        // JavaScript pop-up error display
+        window.onload = function() {
+            // Check  Django messages
+            const messages = document.querySelectorAll('ul li');
+            if (messages.length > 0) {
+                let errorPopup = document.getElementById('errorPopup');
+                let errorMessage = '';
+
+                
+                messages.forEach(function(message) {
+                    errorMessage += message.textContent + '';
+                });
+
+                
+                errorPopup.textContent = errorMessage.trim();
+                errorPopup.style.display = 'block';
+
+                
+                setTimeout(function() {
+                    errorPopup.style.display = 'none';
+                }, 5000);
+            }
+        };
     </script>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 </html>

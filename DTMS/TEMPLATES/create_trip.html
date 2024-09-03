@@ -26,7 +26,11 @@
         <a href="#" class="back-button" onclick="goToDashboard()">Back</a>
     </div>
     <div class="main-content">
+        {% if is_edit %}
+        <h2 class="text-center text-orange mb-4"><i class="fas fa-road"></i> Edit Trip</h2>
+        {% else %}
         <h2 class="text-center text-orange mb-4"><i class="fas fa-road"></i> Create Trip</h2>
+        {% endif %}
         <div class="form-container">
             <form id="createTripForm" method="post" action="{% url 'create_trip' %}">
                 {% csrf_token %}
@@ -66,9 +70,7 @@
                         <div class="form-group">
                             <label for="driver"><i class="fas fa-user"></i> Driver</label>
                             <select class="form-control" id="driver" name="driver" required>
-                                {% for driver in drivers %}
-                                    <option value="{{ driver.id }}">{{ driver }}</option>
-                                {% endfor %}
+                                <!-- Dynamically populated -->
                             </select>
                         </div>
                     </div>
@@ -76,9 +78,7 @@
                         <div class="form-group">
                             <label for="co_driver"><i class="fas fa-user-friends"></i> Co-Driver</label>
                             <select class="form-control" id="co_driver" name="co_driver" required>
-                                {% for co_driver in co_drivers %}
-                                    <option value="{{ co_driver.id }}">{{ co_driver }}</option>
-                                {% endfor %}
+                                <!-- Dynamically populated -->
                             </select>
                         </div>
                     </div>
@@ -86,9 +86,7 @@
                         <div class="form-group">
                             <label for="vehicle"><i class="fas fa-truck"></i> Vehicle</label>
                             <select class="form-control" id="vehicle" name="vehicle" required>
-                                {% for vehicle in vehicles %}
-                                    <option value="{{ vehicle.id }}">{{ vehicle }}</option>
-                                {% endfor %}
+                                <!-- Dynamically populated -->
                             </select>
                         </div>
                     </div>
@@ -117,7 +115,9 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block bg-orange mt-4"><i class="fas fa-paper-plane"></i> Submit</button>
+                <button type="submit" class="btn btn-primary btn-block bg-orange mt-4"><i class="fas fa-paper-plane"></i> Submit
+                    {% if is_edit %} Update Trip {% else %} Create Trip {% endif %}
+                </button>
             </form>
             <div id="distance" class="text-center mt-3 text-grey"></div>
         </div>
@@ -137,40 +137,44 @@
                 var dayName = date.toLocaleDateString('en-US', options);
                 document.getElementById('day').value = dayName;
             });
-
-            // Fetch trip data and update select options
-            fetch("{% url 'trip_data' %}")
-                .then(response => response.json())
-                .then(data => {
-                    const { drivers, co_drivers, vehicles } = data;
-
-                    // Function to update select options
-                    function updateSelectOptions(selector, usedIds, allOptions) {
-                        const selectElement = document.querySelector(selector);
-                        selectElement.innerHTML = ''; // Clear existing options
-
-                        allOptions.forEach(option => {
-                            if (!usedIds.includes(parseInt(option.value))) {
-                                let opt = document.createElement('option');
-                                opt.value = option.value;
-                                opt.textContent = option.text;
-                                selectElement.appendChild(opt);
-                            }
-                        });
-                    }
-
-                    // Example options for each select element
-                    const allDriverOptions = Array.from(document.querySelector('#driver').options);
-                    const allCoDriverOptions = Array.from(document.querySelector('#co_driver').options);
-                    const allVehicleOptions = Array.from(document.querySelector('#vehicle').options);
-
-                    // Update each select element with available options
-                    updateSelectOptions('#driver', drivers, allDriverOptions);
-                    updateSelectOptions('#co_driver', co_drivers, allCoDriverOptions);
-                    updateSelectOptions('#vehicle', vehicles, allVehicleOptions);
-                })
-                .catch(error => console.error('Error fetching trip data:', error));
+        
+            // Fetch available drivers, co-drivers, and vehicles
+            function updateAvailableOptions() {
+                fetch("{% url 'trip_data' %}")  // Fetch available resources from the backend
+                    .then(response => response.json())
+                    .then(data => {
+                        updateSelectOptions('#driver', data.drivers);
+                        updateSelectOptions('#co_driver', data.co_drivers);
+                        updateSelectOptions('#vehicle', data.vehicles);
+                    })
+                    .catch(error => console.error('Error fetching available trip data:', error));
+            }
+        
+            // Function to update select options dynamically
+            function updateSelectOptions(selector, options) {
+                const selectElement = document.querySelector(selector);
+                selectElement.innerHTML = '';  // Clear existing options
+                
+                // Add a placeholder option
+                let placeholderOption = document.createElement('option');
+                placeholderOption.value = '';
+                placeholderOption.textContent = 'Select an option';
+                selectElement.appendChild(placeholderOption);
+                
+                options.forEach(option => {
+                    let opt = document.createElement('option');
+                    opt.value = option.id;
+                    opt.textContent = option.name;
+                    selectElement.appendChild(opt);
+                });
+            }
+        
+            // Call function to update options initially
+            updateAvailableOptions();
         });
+        
+            
+        
     </script>
 </body>
 </html>

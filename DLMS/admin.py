@@ -13,8 +13,6 @@ admin.site.register(Product)
 
 
 
-
-
 # class CustomUserSignUpForm(forms.ModelForm):
 #     class Meta:
 #         model = User

@@ -79,7 +79,7 @@
                             <option value="" disabled selected>Search by product code</option>
                             {% for product in products %}
                                 <option value="{{ product.id }}" data-weight="{{ product.weight_per_metre }}">
-                                    {{ product.stock_code }} - {{ product.product }} ({{ product.description }}, {{ product.unit_of_measure }}, {{ product.weight_per_metre }} kg/m)
+                                    {{ product.stock_code }} - {{ product.product }} ({{ product.description }}, {{ product.unit_of_measure }}, {{product.metres}} ,{{ product.weight_per_metre }} kg/m)
                                 </option>
                             {% endfor %}
                         </select>
@@ -99,6 +99,7 @@
                 
                 <button type="submit" class="btn btn-primary bg-orange btn-block mt-4"><i class="fas fa-paper-plane"></i> Submit</button>
             </form>
+
 
         
         </div>
@@ -246,6 +247,7 @@
                 const selectedTrip = tripSelect.value;
                 if (selectedTrip) {
                     document.getElementById('product-section').style.display = 'block';
+                    
                     fetch(`/api/trips/${selectedTrip}/products/`)
                         .then(response => response.json())
                         .then(products => {
@@ -259,7 +261,37 @@
                                 productSelect.appendChild(option);
                             });
                         });
+            
+                    // Load and display loaded products for the selected trip
+                    loadProductsTable(selectedTrip);
                 }
+            }
+            function loadProductsTable(tripId) {
+                fetch(`/api/trips/${tripId}/load_trip_products/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const productsTableBody = document.getElementById('products-table-body');
+                        productsTableBody.innerHTML = '';  // Clear previous rows
+            
+                        if (data.length === 0) {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.innerHTML = `<td colspan="3" class="text-center">No products loaded</td>`;
+                            productsTableBody.appendChild(emptyRow);
+                        } else {
+                            data.forEach(product => {
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td>${product.product_name}</td>
+                                    <td>${product.quantity}</td>
+                                    <td>${product.total_weight}</td>
+                                `;
+                                productsTableBody.appendChild(tr);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching loaded products:', error);
+                    });
             }
         </script>
     </body>

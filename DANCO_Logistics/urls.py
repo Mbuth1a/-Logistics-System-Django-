@@ -9,8 +9,7 @@ from DTMS import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login/', login, name='login'),
-    path('signup/', signup, name='signup'),
+    path('login/', custom_login, name='login'),
     path('dashboard/',dashboard, name='dashboard'),
     path('dtms_dashboard/',views.dtms_dashboard, name='dtms_dashboard'),
     # Drivers
@@ -26,7 +25,7 @@ urlpatterns = [
     path('edit_vehicle/<int:id>/', edit_vehicle, name='edit_vehicle'),
     path('delete_vehicle/<int:id>/', delete_vehicle, name='delete_vehicle'),
     
-    # TRIPS
+    # Co-drivers
     path('add_co_driver/', add_co_driver, name='add_co_driver'),
     path('manage_co_drivers/', manage_co_drivers, name='manage_co_drivers'),
     path('edit_codriver/<int:id>/',edit_codriver, name='edit_codriver'),
@@ -41,20 +40,28 @@ urlpatterns = [
     path('', views.dtms_dashboard, name='dtms_dashboard'),
     path('create_trip/', views.create_trip, name='create_trip'), 
     path('load_trip/', views.load_trip, name='load_trip'),
-    path('load_trips/', views.load_trips, name='load_trips'),
+    path('api/trip_products/<int:trip_id>/products/', views.trip_products, name='trip_products'),
+    path('trips/<int:trip_id>/load_trip_products/', views.load_trip_products, name='load_trip_products'),
+    
+    
     path('api/trips/', views.get_trips, name='get_trips'),
     path('api/trip-data/', views.get_trip_data, name='trip_data'),
     path('end-trip/<int:trip_id>/', views.end_trip, name='end_trip'),
+    path('edit-trip/<int:trip_id>/', views.edit_trip, name='edit_trip'),
+    path('delete-trip/<int:trip_id>/', views.delete_trip, name='delete_trip'),
     
 
     
     
     # Expenses
     path('expenses/', views.expenses, name='expenses'),
-    path('fetch_trips/', views.fetch_trips, name='fetch_trips'),
-    path('get_trip_details/<int:trip_id>/', views.get_trip_details, name='get_trip_details'),
-    path('assign_expenses/', views.assign_expenses, name='assign_expenses'),
-    path('fetch_assigned_expenses/', views.fetch_assigned_expenses, name='fetch_assigned_expenses'),
+    path('api/trips/', views.TripListView.as_view(), name='trip-list'),  # Corrected URL for TripListView
+    path('api/expenses/', views.ExpenseListView.as_view(), name='expense-list'),  # Corrected URL for ExpenseListView
+    path('api/trips/<int:trip_id>/', views.trip_detail_api, name='trip_detail_api'),
+    path('api/assign-expense/', views.AssignExpenseView.as_view(), name='assign_expense'),
+    path('api/expenses/<int:expense_id>/', views.delete_expense, name='delete_expense'),
+    path('api/expenses/', views.expenses_list, name='expenses_list'),
+    
     # Fuel Records
     path('fuel_records/', views.fuel, name='fuel_records'),
     path('save_fuel/', views.save_fuel, name='save_fuel'),
@@ -73,7 +80,15 @@ urlpatterns = [
     path('get-schedule/', views.get_schedule, name='get_schedule'),
     path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
     path('garage-history/', views.garage_list, name='garage_list'),
+    path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
+    
+    # logout
+    path('logout/', views.logout_view, name='logout'),
+    
+    
 ]
+
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

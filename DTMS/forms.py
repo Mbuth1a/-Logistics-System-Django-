@@ -6,14 +6,16 @@ class TripForm(forms.ModelForm):
     class Meta:
         model = Trip
         fields = ['date', 'time', 'description', 'driver', 'co_driver', 'vehicle', 'from_location', 'stops', 'to_location', 'est_distance']
-        widgets = {
-            'description': forms.Select(choices=Trip._meta.get_field('description').choices),
-        }
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['driver'].queryset = Driver.objects.filter(trip__isnull=True)
-        self.fields['co_driver'].queryset = CoDriver.objects.filter(trip__isnull=True)
-        self.fields['vehicle'].queryset = Vehicle.objects.filter(trip__isnull=True)
+        # Only exclude drivers, co-drivers, and vehicles assigned to 'ongoing' trips
+        self.fields['driver'].queryset = Driver.objects.exclude(trip__status='ongoing')
+        self.fields['co_driver'].queryset = CoDriver.objects.exclude(trip__status='ongoing')
+        self.fields['vehicle'].queryset = Vehicle.objects.exclude(trip__status='ongoing')
+        
+        
+        
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expenses
