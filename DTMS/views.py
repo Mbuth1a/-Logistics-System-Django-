@@ -18,8 +18,9 @@ logger = logging.getLogger(__name__)
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout
 # Create your views here.
-@login_required
+
 @user_passes_test(lambda u: u.groups.filter(name='STAFFS').exists())
+@login_required
 def dtms_dashboard(request):
     ongoing_trips = Trip.objects.filter(status='ongoing')
     ended_trips = Trip.objects.filter(status='ended')

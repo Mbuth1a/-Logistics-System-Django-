@@ -10,6 +10,7 @@ from DTMS import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', custom_login, name='login'),
+    # path('', custom_login, name='login'), 
     path('dashboard/',dashboard, name='dashboard'),
     path('dtms_dashboard/',views.dtms_dashboard, name='dtms_dashboard'),
     # Drivers

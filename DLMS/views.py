@@ -9,8 +9,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, user_passes_test
 logger = logging.getLogger(__name__)
 # Create your views here.
-@login_required
+
 @user_passes_test(lambda u: u.groups.filter(name='ADMINS').exists())
+@login_required
 def dashboard(request):
     total_drivers = Driver.objects.count()
     total_vehicles = Vehicle.objects.count()
