@@ -494,12 +494,23 @@ def maintenance(request):
     # Prepare schedule data with color codes based on date proximity
     schedule_data = []
     for schedule in schedules:
-        days_remaining = (schedule.maintenance_date - now).days
-        days_remaining = (schedule.inspection_date - now).days
-        days_remaining = (schedule.insurance_date - now).days
-        days_remaining = (schedule.speed_governor_date - now).days
-        days_remaining = (schedule.kenha_permit_date - now).days
+        # Calculate days remaining for each date
+        maintenance_days_remaining = (schedule.maintenance_date - now).days
+        inspection_days_remaining = (schedule.inspection_date - now).days
+        insurance_days_remaining = (schedule.insurance_date - now).days
+        speed_governor_days_remaining = (schedule.speed_governor_date - now).days
+        kenha_permit_days_remaining = (schedule.kenha_permit_date - now).days
+
+        # Find the nearest date
+        days_remaining = min(
+            maintenance_days_remaining,
+            inspection_days_remaining,
+            insurance_days_remaining,
+            speed_governor_days_remaining,
+            kenha_permit_days_remaining
+        )
         
+        # Assign color class based on the nearest date
         if days_remaining > 60:
             color_class = 'card-green'
         elif days_remaining > 30:
@@ -522,6 +533,7 @@ def maintenance(request):
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
         
+        # Filter vehicles based on search query
         vehicles = Vehicle.objects.exclude(maintenanceschedule__isnull=False)
         if search_query:
             vehicles = vehicles.filter(vehicle_regno__icontains=search_query)
@@ -559,11 +571,12 @@ def schedule_maintenance(request, vehicle_id):
         form = MaintenanceScheduleForm()
         return render(request, 'maintenance.html', {'form': form})
 
+
 def get_schedule(request):
     schedule_id = request.GET.get('schedule_id')
     schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
+    
     data = {
-        'id': schedule.id,
         'vehicle_id': schedule.vehicle.id,
         'service_provider': schedule.service_provider,
         'maintenance_date': schedule.maintenance_date,
@@ -572,18 +585,15 @@ def get_schedule(request):
         'speed_governor_date': schedule.speed_governor_date,
         'kenha_permit_date': schedule.kenha_permit_date,
     }
+    
     return JsonResponse(data)
 
-
-@require_POST
 def delete_schedule(request, id):
-    try:
-        schedule = MaintenanceSchedule.objects.get(id=id)  # Ensure correct variable usage
+    schedule = get_object_or_404(MaintenanceSchedule, id=id)
+    if request.method == "POST":
         schedule.delete()
         return JsonResponse({'status': 'success'})
-    except MaintenanceSchedule.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Schedule does not exist'})
-
+    return JsonResponse({'status': 'error'})
 
 # Logout
 def logout_view(request):
@@ -591,3 +601,5 @@ def logout_view(request):
         logout(request)
         return JsonResponse({'message': 'Logged out successfully'})
     return redirect('login')
+
+

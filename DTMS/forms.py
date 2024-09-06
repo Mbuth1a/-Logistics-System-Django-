@@ -63,3 +63,5 @@ class LoadTripProductForm(forms.ModelForm):
     class Meta:
         model = LoadTripProduct
         fields = ['product', 'quantity', 'total_weight']
+        
+

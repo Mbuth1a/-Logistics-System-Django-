@@ -102,12 +102,16 @@
                                 <p class="card-text"><strong>Speed Governor Date:</strong> {{ schedule.speed_governor_date }}</p>
                                 <p class="card-text"><strong>KENHA Permit Date:</strong> {{ schedule.kenha_permit_date }}</p>
                                 <p class="card-text"><strong>Days Remaining:</strong> {{ schedule.days_remaining }}</p>
-                               
+                
+                                <!-- Edit and Delete Buttons -->
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#scheduleModal" data-schedule-id="{{ schedule.id }}">Edit</button>
+                                <button class="btn btn-danger" onclick="deleteSchedule({{ schedule.id }})">Delete</button>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
+                
 
                 <!-- Delete Confirmation Modal -->
                 <div class="modal fade" id="deleteScheduleModal" tabindex="-1" aria-labelledby="deleteScheduleModalLabel" aria-hidden="true">
@@ -120,7 +124,7 @@
                                 </button>
                             </div>
                             <div class="modal-body">
-                                Are you sure you want to delete this Schedule?
+                                Are you sure you want to delete this schedule?
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -134,7 +138,7 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Schedule Modal -->
     <div class="modal fade" id="scheduleModal" tabindex="-1" role="dialog" aria-labelledby="scheduleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -145,7 +149,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form id="scheduleForm" method="post" action="{% url 'schedule_maintenance' vehicle_id=0 %}">
+                    <form id="scheduleForm" method="POST" action="{% url 'schedule_maintenance' 0 %}">
                         {% csrf_token %}
                         <input type="hidden" name="vehicle_id" id="vehicleId">
                         <input type="hidden" name="schedule_id" id="scheduleId">
@@ -184,7 +188,33 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
     <script>
+        // CSRF token setup for AJAX requests
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        $.ajaxSetup({
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        });
+
+        // Modal population and AJAX request for adding/editing schedules
         $('#scheduleModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
             var scheduleId = button.data('schedule-id');
@@ -205,7 +235,7 @@
                         modal.find('#insuranceDate').val(data.insurance_date);
                         modal.find('#speedGovernorDate').val(data.speed_governor_date);
                         modal.find('#kenhaPermitDate').val(data.kenha_permit_date);
-                        form.attr('action', "{% url 'schedule_maintenance' vehicle_id=0 %}".replace('0', data.vehicle_id));
+                        form.attr('action', "/schedule_maintenance/" + data.vehicle_id + "/");
                         modal.find('.modal-title').text('Edit Maintenance Schedule');
                     },
                     error: function () {
@@ -216,43 +246,30 @@
                 modal.find('#scheduleId').val('');
                 modal.find('#vehicleId').val(vehicleId);
                 modal.find('.modal-title').text('Add Maintenance Schedule');
-                form.attr('action', "{% url 'schedule_maintenance' vehicle_id=0 %}".replace('0', vehicleId));
+                form.attr('action', "/schedule_maintenance/" + vehicleId + "/");
             }
         });
 
-        window.deleteSchedule = function(id) {
-            if (!id) {
-                alert("Invalid schedule ID");
-                return;
-            }
-    
-            // Show the confirmation modal
+        // Delete schedule function
+        function deleteSchedule(scheduleId) {
             $('#deleteScheduleModal').modal('show');
-    
-            // Set up the delete button inside the modal
-            $('#confirmDeleteScheduleButton').off('click').on('click', function() {
+            $('#confirmDeleteScheduleButton').off().on('click', function () {
                 $.ajax({
-                    url: `/delete_schedule/${id}/`,  // Use the schedule ID in the URL
+                    url: "/delete_schedule/" + scheduleId + "/",
                     method: "POST",
-                    success: function(response) {
+                    success: function (response) {
                         if (response.status === 'success') {
-                            $('#deleteScheduleModal').modal('hide');
-                            // Call a function to reload the maintenance schedules
-                            loadMaintenanceSchedules();
+                            location.reload();
                         } else {
-                            alert('Error deleting Schedule.');
+                            alert('Error deleting schedule.');
                         }
                     },
-                    error: function() {
+                    error: function () {
                         alert('Failed to delete the schedule. Please try again.');
                     }
                 });
             });
-        };
-
-        $('#backButton').on('click', function () {
-            window.location.href = "{% url 'dtms_dashboard' %}";
-        });
+        }
     </script>
 </body>
 </html>

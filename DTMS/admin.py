@@ -9,3 +9,4 @@ admin.site.register(Fuel)
 admin.site.register(Garage)
 admin.site.register(MaintenanceSchedule)
 admin.site.register(LoadTripProduct)
+

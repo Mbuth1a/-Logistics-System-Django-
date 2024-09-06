@@ -96,3 +96,5 @@ class MaintenanceSchedule(models.Model):
 
     def __str__(self):
         return f"Maintenance Schedule for {self.vehicle.vehicle_regno}"
+
+
