@@ -3,7 +3,6 @@ from django.http import JsonResponse, HttpResponse
 from DTMS.forms import*
 from django.db.models import Sum
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.csrf import csrf_protect
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET,require_POST
 import logging
@@ -12,7 +11,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.views import View
-from .models import Trip, Expenses
+from .models import Trip, Expenses, Bike
+from django.utils import timezone
 from .serializers import TripSerializer, ExpensesSerializer
 logger = logging.getLogger(__name__)
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -172,14 +172,44 @@ def delete_trip(request, trip_id):
         return JsonResponse({'success': False, 'error': str(e)})
 
 
+@require_POST  # Ensures that only POST requests are allowed
 def end_trip(request, trip_id):
-    if request.method == 'POST':
-        trip = get_object_or_404(Trip, id=trip_id)
-        if trip.status == 'ongoing':
-            trip.end_trip()  # Use the method defined in the model to end the trip
+    # Get the trip object by ID
+    trip = get_object_or_404(Trip, id=trip_id)
+
+    # Ensure the trip status is ongoing before allowing it to be ended
+    if trip.status == 'ongoing':
+        try:
+            # Parse the request body to get the end_odometer value
+            data = json.loads(request.body)
+            end_odometer = int(data['end_odometer'])
+
+            # Check if the end odometer is valid (should be greater than start odometer)
+            if end_odometer < int(trip.start_odometer):
+                return JsonResponse({'success': False, 'error': 'End odometer cannot be less than start odometer.'})
+
+            # Update the trip with the end odometer and calculate the actual distance
+            trip.end_odometer = end_odometer
+            trip.actual_distance = str(end_odometer - int(trip.start_odometer))
+
+            # Call the model method to set status to 'ended' and set end_time
+            trip.end_trip()
+
+            # Return success response with end time
             return JsonResponse({'success': True, 'end_time': trip.end_time})
-        else:
-            return JsonResponse({'success': False, 'error': 'Trip is already ended.'})
+        
+        except (ValueError, KeyError) as e:
+            # Handle missing or invalid data in the request
+            return JsonResponse({'success': False, 'error': 'Invalid data: ' + str(e)})
+        except Exception as e:
+            # Handle any other unexpected errors
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    else:
+        # If the trip is already ended, return an error
+        return JsonResponse({'success': False, 'error': 'Trip is already ended.'})
+
+    # If the request method is not POST (handled by require_POST, but for completeness)
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 # Filtering available objects
 def get_trip_data(request):
@@ -501,6 +531,7 @@ def maintenance(request):
         insurance_days_remaining = (schedule.insurance_date - now).days
         speed_governor_days_remaining = (schedule.speed_governor_date - now).days
         kenha_permit_days_remaining = (schedule.kenha_permit_date - now).days
+        track_solid_days_remaining = (schedule.track_solid_date - now).days
 
         # Find the nearest date
         days_remaining = min(
@@ -508,7 +539,8 @@ def maintenance(request):
             inspection_days_remaining,
             insurance_days_remaining,
             speed_governor_days_remaining,
-            kenha_permit_days_remaining
+            kenha_permit_days_remaining,
+            track_solid_days_remaining
         )
         
         # Assign color class based on the nearest date
@@ -527,15 +559,16 @@ def maintenance(request):
             'insurance_date': schedule.insurance_date,
             'speed_governor_date': schedule.speed_governor_date,
             'kenha_permit_date': schedule.kenha_permit_date,
+            'track_solid_date': schedule.track_solid_date,
             'days_remaining': days_remaining,
             'color_class': color_class,
+            'id': schedule.id  # Include ID in the data
         })
 
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
         
         # Filter vehicles based on search query
-        vehicles = Vehicle.objects.exclude(maintenanceschedule__isnull=False)
         if search_query:
             vehicles = vehicles.filter(vehicle_regno__icontains=search_query)
     
@@ -544,6 +577,7 @@ def maintenance(request):
         'schedules': schedule_data,
     }
     return render(request, 'maintenance.html', context)
+
 
 
 def schedule_maintenance(request, vehicle_id):
@@ -585,16 +619,24 @@ def get_schedule(request):
         'insurance_date': schedule.insurance_date,
         'speed_governor_date': schedule.speed_governor_date,
         'kenha_permit_date': schedule.kenha_permit_date,
+        'track_solid_date': schedule.track_solid_date,
     }
     
     return JsonResponse(data)
+from django.http import HttpResponseForbidden
+def delete_schedule(request, schedule_id):
+    # Ensure that the user is authenticated
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden()
 
-def delete_schedule(request, id):
-    schedule = get_object_or_404(MaintenanceSchedule, id=id)
-    if request.method == "POST":
-        schedule.delete()
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'})
+    # Fetch the schedule object, or return a 404 if not found
+    schedule = get_object_or_404(MaintenanceSchedule, id=schedule_id)
+
+    # Delete the schedule
+    schedule.delete()
+
+    # Redirect to the appropriate page after deletion
+    return redirect('maintenance') 
 
 # Logout
 def logout_view(request):
@@ -602,5 +644,40 @@ def logout_view(request):
         logout(request)
         return JsonResponse({'message': 'Logged out successfully'})
     return redirect('login')
+
+
+def bike_parking(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        expiry_date = request.POST.get('expiry_date')
+        if name and expiry_date:
+            Bike.objects.create(name=name, expiry_date=expiry_date)
+        return redirect('bike_parking')
+
+    today = timezone.now().date()
+    bikes = Bike.objects.all()
+
+    # Calculate days remaining for each software
+    for bike in bikes:
+        bike.days_remaining = (bike.expiry_date - today).days
+        # Assign color class based on the days remaining
+        if bike.days_remaining > 20:
+            bike.color_class = 'card-green'
+        elif bike.days_remaining > 10:
+            bike.color_class = 'card-orange'
+        else:
+            bike.color_class = 'card-red'
+
+    return render(request, 'bike_parking.html', {'bikes': bikes})
+
+
+def delete_bike(request,bike_id):
+    if request.method == 'POST':
+        bike = get_object_or_404(Bike, id=bike_id)
+        bike.delete()
+        return redirect('bike_parking')
+    
+    
+    
 
 

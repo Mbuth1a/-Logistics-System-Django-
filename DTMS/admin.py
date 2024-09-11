@@ -10,3 +10,5 @@ admin.site.register(Garage)
 admin.site.register(MaintenanceSchedule)
 admin.site.register(LoadTripProduct)
 
+admin.site.register(Bike)
+

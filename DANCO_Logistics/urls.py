@@ -77,17 +77,13 @@ urlpatterns = [
     path('checkout_vehicle/', views.checkout_vehicle, name='checkout_vehicle'),
     # Maintenance page
     path('maintenance/', views.maintenance, name='maintenance'),
-    
     path('schedule_maintenance/<int:vehicle_id>/', views.schedule_maintenance, name='schedule_maintenance'),
-    path('get-schedule/', views.get_schedule, name='get_schedule'),
-    path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
     path('garage-history/', views.garage_list, name='garage_list'),
     path('delete_schedule/', views.delete_schedule, name='delete_schedule'),
     path('get_schedule/', views.get_schedule, name='get_schedule'),
-    path('delete_schedule/<int:id>/', views.delete_schedule, name='delete_schedule'),
-    
-   
-    
+    path('delete_schedule/<int:schedule_id>/', views.delete_schedule, name='delete_schedule'),
+    path('bike_parking', views.bike_parking, name='bike_parking'),
+    path('delete_bike/<int:bike_id>/', views.delete_bike, name='delete_bike'),
     # logout
     path('logout/', views.logout_view, name='logout'),
     

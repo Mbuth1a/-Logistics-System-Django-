@@ -5,7 +5,7 @@ from django.forms import formset_factory
 class TripForm(forms.ModelForm):
     class Meta:
         model = Trip
-        fields = ['date', 'time', 'description', 'driver', 'co_driver', 'vehicle', 'from_location', 'stops', 'to_location', 'est_distance']
+        fields = ['date', 'time', 'description', 'driver', 'co_driver', 'vehicle', 'from_location', 'stops', 'to_location', 'est_distance', 'start_odometer' ]
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,7 +40,8 @@ class MaintenanceScheduleForm(forms.ModelForm):
             'inspection_date',
             'insurance_date',
             'speed_governor_date',
-            'kenha_permit_date'
+            'kenha_permit_date',
+            'track_solid_date'
         ]
         widgets = {
             'maintenance_date': forms.DateInput(attrs={'type': 'date'}),
@@ -48,6 +49,7 @@ class MaintenanceScheduleForm(forms.ModelForm):
             'insurance_date': forms.DateInput(attrs={'type': 'date'}),
             'speed_governor_date': forms.DateInput(attrs={'type': 'date'}),
             'kenha_permit_date': forms.DateInput(attrs={'type': 'date'}),
+            'track_solid_date': forms.DateInput(attrs={'type': 'date'}),
         }
         
         

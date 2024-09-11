@@ -25,6 +25,9 @@ class Trip(models.Model):
     stops = models.CharField(max_length=200, null=True, blank=True)
     to_location = models.CharField(max_length=100)
     est_distance = models.CharField(max_length=100)
+    start_odometer = models.CharField(max_length=100, null= True)
+    end_odometer = models.CharField(max_length=100, null=True)
+    actual_distance = models.CharField(max_length=100, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='ongoing') 
     end_time = models.DateTimeField(null=True, blank=True)
     
@@ -92,9 +95,24 @@ class MaintenanceSchedule(models.Model):
     insurance_date = models.DateField()
     speed_governor_date = models.DateField()
     kenha_permit_date = models.DateField()
+    track_solid_date = models.DateField( null=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"Maintenance Schedule for {self.vehicle.vehicle_regno}"
 
 
+
+    
+    
+class Bike(models.Model):
+    name = models.CharField(max_length=100)
+    expiry_date = models.DateField()
+
+    def __str__(self):
+        return self.name
+
+    def days_remaining(self):
+        today = timezone.now().date()
+        delta = self.expiry_date - today
+        return delta.days

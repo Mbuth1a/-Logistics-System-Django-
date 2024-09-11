@@ -169,7 +169,7 @@
       </li>
       <li class="nav-item">
         <a class="nav-link" id="maintenance-link" href="#">
-          <i class="fas fa-tools"></i> MAINTENANCE <i class="fas fa-plus" id="maintenance-plus"></i>
+          <i class="fas fa-tools"></i> MAINTENANCE & REMINDERS <i class="fas fa-plus" id="maintenance-plus"></i>
         </a>
         <ul class="nav flex-column sub-menu" id="maintenance-submenu">
           <li class="nav-item">
@@ -180,6 +180,12 @@
           <li class="nav-item">
             <a class="nav-link" href="{% url 'maintenance' %}">
               <i class="fas fa-wrench"></i> Maintenance
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'bike_parking' %}">
+              <i class="fas fa-biking"></i> Bike Parking
             </a>
           </li>
           
@@ -203,6 +209,32 @@
     </div>
   </nav>
 
+   <div class="modal fade" id="endTripModal" tabindex="-1" role="dialog" aria-labelledby="endTripModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="endTripModalLabel">End Trip</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="end-trip-form">
+            <div class="form-group">
+              <label for="end-odometer">Enter End Odometer Reading</label>
+              <input type="number" class="form-control" id="end-odometer" name="end_odometer" required>
+            </div>
+            <input type="hidden" id="trip-id" name="trip_id">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="submit-end-trip">End Trip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <h2 class="alert-heading position-sticky">Ongoing Trips</h2>
     <table class="table table-dark">
@@ -219,6 +251,7 @@
           <th>Day</th>
           <th>Description</th>
           <th>Estimated Distance</th>
+          <th>Start Odometer</th>
           <th>Status</th>
           <th>Action</th>
         </tr>
@@ -236,7 +269,9 @@
           <td>{{ trip.time }}</td>
           <td>{{ trip.day }}</td>
           <td>{{ trip.get_description_display }}</td>
-          <td>{{ trip.est_distance }}</td>
+          <td>{{ trip.est_distance }} Km</td>
+          <td>{{ trip.start_odometer }} Km</td>
+        
           <td>{{ trip.get_status_display }}</td>
           <td>
             
@@ -264,6 +299,9 @@
           <th>Day</th>
           <th>Description</th>
           <th>Estimated Distance</th>
+          <th>Start Odometer</th>
+          <th>End Odometer</th>
+          <th>Actual Distance</th>
           <th>Status</th>
           <th>Time Ended</th>
         </tr>
@@ -281,7 +319,10 @@
           <td>{{ trip.time }}</td>
           <td>{{ trip.day }}</td>
           <td>{{ trip.get_description_display }}</td>
-          <td>{{ trip.est_distance }}</td>
+          <td>{{ trip.est_distance }} Km</td>
+          <td>{{ trip.start_odometer }} Km</td>
+          <td>{{ trip.end_odometer }} Km</td>
+          <td>{{ trip.actual_distance }} Km</td>
           <td>{{ trip.get_status_display }}</td>
           <td>{{ trip.end_time }}</td>
         </tr>
@@ -307,53 +348,8 @@
       plusIcon.style.transform = (submenu.style.display === 'block') ? 'rotate(60deg)' : 'rotate(0deg)';
     });
 
-    document.querySelectorAll('.end-trip-btn').forEach(function(button) {
-      button.addEventListener('click', function() {
-        const tripId = this.dataset.tripId;
-        if (confirm('Are you sure you want to end this trip?')) {
-          fetch(`/end-trip/${tripId}/`, {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}',
-              'Content-Type': 'application/json'
-            }
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              alert('Trip ended successfully.');
-              window.location.reload();  // Reload the page to reflect changes
-            } else {
-              alert('Failed to end the trip: ' + data.error);
-            }
-          })
-          .catch(error => console.error('Error:', error));
-        }
-      });
-    });
-    document.querySelectorAll('.end-trip-btn').forEach(function(button) {
-      button.addEventListener('click', function() {
-        const tripId = this.dataset.tripId;
-        if (confirm('Are you sure you want to end this trip?')) {
-          fetch(`/end-trip/${tripId}/`, {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}',
-              'Content-Type': 'application/json'
-            }
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              alert('Trip ended successfully.');
-              window.location.reload();  // Reload the page to reflect changes
-            } 
-            
-          })
-          .catch(error => console.error('Error:', error));
-        }
-      });
-    });
+   
+    
   
     // Function to handle the "Edit Trip" button click
     document.querySelectorAll('.edit-trip-btn').forEach(function(button) {
@@ -429,5 +425,69 @@
     return cookieValue;
   }
   </script>
+  <script>
+    // Show modal and set trip ID for ending the trip
+    document.querySelectorAll('.end-trip-btn').forEach(function(button) {
+      button.addEventListener('click', function() {
+        const tripId = this.dataset.tripId;
+        // Set the trip ID in the hidden input field of the modal
+        document.getElementById('trip-id').value = tripId;
+        // Display the modal
+        $('#endTripModal').modal('show');
+      });
+    });
+  
+    // Handle the modal form submission for ending the trip
+    document.getElementById('submit-end-trip').addEventListener('click', function() {
+      const endOdometer = document.getElementById('end-odometer').value;
+      const tripId = document.getElementById('trip-id').value;
+  
+      // Check if end_odometer is entered
+      if (!endOdometer || isNaN(endOdometer)) {
+        alert('Please enter a valid End Odometer value.');
+        return;
+      }
+  
+      // Confirm the trip end after the odometer is entered
+      if (confirm('Are you sure you want to end this trip?')) {
+        // Proceed with ending the trip
+        fetch(`/end-trip/${tripId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),  // Get CSRF token from cookie
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ end_odometer: endOdometer })  // Send end_odometer in the request body
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Trip ended successfully.');
+            window.location.reload();  // Reload the page to reflect changes
+          } else {
+            alert('Failed to end the trip: ' + data.error);
+          }
+        })
+        .catch(error => console.error('Error:', error));
+      }
+    });
+  
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
+  
 </body>
 </html>
