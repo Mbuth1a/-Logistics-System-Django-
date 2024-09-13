@@ -26,7 +26,7 @@ class ExpenseForm(forms.ModelForm):
 class GarageForm(forms.ModelForm):
     class Meta:
         model = Garage
-        fields = ['vehicle', 'issue_description']
+        fields = ['vehicle','garage_expense', 'issue_description']
 
 class VehicleSearchForm(forms.Form):
     search_query = forms.CharField(max_length=100, required=False)

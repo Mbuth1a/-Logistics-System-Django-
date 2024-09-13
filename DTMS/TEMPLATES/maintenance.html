@@ -20,8 +20,18 @@
             margin-left: 220px;
             padding: 20px;
         }
-        .btn-back, .btn-primary, .btn-secondary, .btn-danger {
-            background-color: #007bff;
+        .back-button {
+            background-color: orange;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            width: 20px;
+            height: auto;
+            cursor: pointer;
+        }
+        .btn-primary, .btn-secondary, .btn-danger {
+            background-color: orange;
             color: #fff;
             border: none;
         }
@@ -98,7 +108,7 @@
                 <h2 class="mt-6 mb-6">SCHEDULES</h2>
                 <div class="row">
                     {% for schedule in schedules %}
-                    <div class="col-md-6 mb-4" data-vehicle-id="{{ schedule.vehicle.id }}">
+                    <div class="card {{ schedule.color_class }}" id="schedule-{{ schedule.id }}">
                         <div class="card {{ schedule.color_class }}">
                             <div class="card-body">
                                 <h5 class="card-title">{{ schedule.vehicle.vehicle_regno }}</h5>

@@ -103,8 +103,8 @@
     <!-- List of software with color-coded expiry dates -->
     <div id="bike-list">
       {% for bike in bikes %}
-      <div class="card {{ bike.color_class }} p-3">
-        <h4>{{ software.name }}</h4>
+      <div class="card {{ bike.color_class }}" id="bike-{{ bike.id }} p-3">
+        <h4>{{ bike.name }}</h4>
         <p>Expiry Date: {{ bike.expiry_date }}</p>
         <p>Days Remaining: {{ bike.days_remaining }} days</p>
         

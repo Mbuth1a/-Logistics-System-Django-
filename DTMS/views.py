@@ -7,6 +7,7 @@ from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET,require_POST
 import logging
 import json
+from django.core.paginator import Paginator
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -94,8 +95,8 @@ def load_trip(request):
     else:
         form = LoadTripForm()
 
-    # Fetch trips that do not have products loaded (only empty trips)
-    empty_trips = Trip.objects.exclude(id__in=LoadTripProduct.objects.values('load_trip_id'))
+    # Fetch trips that do not have products loaded (only empty trips) and exclude trips with description 'Sale Trip'
+    empty_trips = Trip.objects.exclude(id__in=LoadTripProduct.objects.values('load_trip__trip_id')).exclude(description='Sale Trip').exclude(description='Pick-up')
 
     # Fetch all products for the dropdown
     products = Product.objects.all()
@@ -503,20 +504,54 @@ def add_to_garage(request):
 @csrf_exempt
 @require_POST
 def checkout_vehicle(request):
-    garage_id = request.POST.get('garage_id')
+    if request.method == 'POST':
+        garage_id = request.POST.get('garage_id')
+        garage_expense = request.POST.get('garage_expense')
+
+        try:
+            garage = Garage.objects.get(id=garage_id)
+            if garage.checked_out_at:
+                return JsonResponse({'success': False, 'error': 'Vehicle already checked out'})
+
+            # Add expense and mark vehicle as checked out
+            garage.garage_expense = garage_expense
+            garage.checked_out_at = timezone.now()
+            garage.save()
+            
+            return JsonResponse({'success': True})
+        except Garage.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Garage entry not found'})
     
-    try:
-        garage = Garage.objects.get(id=garage_id)
-    except Garage.DoesNotExist:
-        return JsonResponse({'error': 'Garage record not found'}, status=404)
-    
-    garage.checked_out_at = timezone.now()
-    garage.save()
-    
-    return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
-# Maintenance
+def garage_history(request):
+    # Fetch all garage records where the vehicle has been checked out
+    checked_out_vehicles = Garage.objects.filter(checked_out_at__isnull=False).order_by('-checked_out_at')
+    
+    # Paginate the results, 10 items per page
+    paginator = Paginator(checked_out_vehicles, 10)  # 10 records per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'garage.html', {'page_obj': page_obj})
+def get_garage_history(request):
+    # Fetch all checked-out garage records with non-null garage_expense
+    checked_out_vehicles = Garage.objects.filter(
+        checked_out_at__isnull=False, 
+        garage_expense__isnull=False
+    ).values(
+        'vehicle__vehicle_regno',  # Adjusted field name
+        'issue_description',
+        'garage_expense',
+        'checked_in_at',
+        'checked_out_at'
+    )
+
+    # Convert to list of dictionaries for JSON response
+    history_list = list(checked_out_vehicles)
+    
+    return JsonResponse(history_list, safe=False)
 def maintenance(request):
     vehicles = Vehicle.objects.all()
     schedules = MaintenanceSchedule.objects.all()
@@ -677,7 +712,82 @@ def delete_bike(request,bike_id):
         bike.delete()
         return redirect('bike_parking')
     
+    # Reporting API
     
+# views.py
+from django.http import JsonResponse
+from django.views import View
+from django.db.models import Sum, F, FloatField
+from .models import Vehicle, Trip, Fuel, Expenses, Garage, LoadTripProduct
+from django.utils.dateparse import parse_date
+
+class GenerateReportAPIView(View):
+    def get(self, request):
+        # Get the date range from the request
+        start_date = parse_date(request.GET.get('start_date'))
+        end_date = parse_date(request.GET.get('end_date'))
+
+        # Ensure both start and end dates are provided
+        if not start_date or not end_date:
+            return JsonResponse({"error": "Invalid date range provided"}, status=400)
+
+        # Get all vehicles
+        vehicles = Vehicle.objects.all()
+
+        # Prepare the data to return
+        report_data = []
+
+        for vehicle in vehicles:
+            # Fetch all trips for this vehicle within the date range
+            trips = Trip.objects.filter(vehicle=vehicle, date__range=(start_date, end_date))
+
+            if not trips.exists():
+                continue
+
+            # Calculate total fuel consumption
+            fuel_data = Fuel.objects.filter(trip__in=trips).aggregate(total_fuel=Sum('fuel_consumed'))
+            total_fuel = fuel_data.get('total_fuel', Decimal('0')) or Decimal('0')
+
+            # Calculate total expenses (driver + co-driver)
+            expenses_data = Expenses.objects.filter(trip__in=trips).aggregate(
+                total_driver_expenses=Sum('driver_expense'),
+                total_co_driver_expenses=Sum('co_driver_expense')
+            )
+
+            # Calculate total load carried
+            load_data = LoadTripProduct.objects.filter(load_trip__trip__in=trips).aggregate(
+                total_weight_carried=Sum('total_weight')
+            )
+
+            # Calculate garage expenses for the vehicle in the date range
+            garage_data = Garage.objects.filter(vehicle=vehicle, checked_in_at__date__range=(start_date, end_date)).aggregate(
+                total_garage_expenses=Sum(F('garage_expense'), output_field=FloatField())
+            )
+
+            # Calculate total distance covered
+            total_distance_data = trips.aggregate(total_distance=Sum('actual_distance', output_field=FloatField()))
+            total_distance = total_distance_data.get('total_distance', 0.0) or 0.0
+
+            # Convert total_fuel to float for compatibility with total_distance
+            total_fuel = float(total_fuel)
+
+            # Calculate Consumption per kilometer
+            consumption_per_km = (total_fuel / total_distance) if total_distance > 0 else 0
+
+            # Collect all data for the vehicle
+            report_data.append({
+                "vehicle_reg_no": vehicle.vehicle_regno,
+                "total_fuel_consumed": total_fuel,
+                "total_driver_expenses": expenses_data.get('total_driver_expenses', 0),
+                "total_co_driver_expenses": expenses_data.get('total_co_driver_expenses', 0),
+                "total_load_carried": load_data.get('total_weight_carried', 0),
+                "total_garage_expenses": garage_data.get('total_garage_expenses', 0),
+                "total_distance_covered": total_distance,
+                "consumption_per_km": consumption_per_km
+            })
+        # Return the report data as JSON
+        return JsonResponse({"report_data": report_data})
+
+def report_form(request):
     
-
-
+    return render(request, 'report_form.html')

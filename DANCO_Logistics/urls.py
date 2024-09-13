@@ -75,6 +75,8 @@ urlpatterns = [
     path('get_vehicle_data/', views.get_vehicle_data, name='get_vehicle_data'),
     path('add_to_garage/', views.add_to_garage, name='add_to_garage'),
     path('checkout_vehicle/', views.checkout_vehicle, name='checkout_vehicle'),
+    path('garage_history/', views.garage_history, name='garage_history'),
+    path('api/garage-history/', views.get_garage_history, name='get_garage_history'),
     # Maintenance page
     path('maintenance/', views.maintenance, name='maintenance'),
     path('schedule_maintenance/<int:vehicle_id>/', views.schedule_maintenance, name='schedule_maintenance'),
@@ -87,6 +89,9 @@ urlpatterns = [
     # logout
     path('logout/', views.logout_view, name='logout'),
     
+    
+    path('report_form', views.report_form, name='report_form'),
+    path('generate-report/', views.GenerateReportAPIView.as_view(), name='generate-report')
     
 ]
 

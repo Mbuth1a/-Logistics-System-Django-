@@ -19,7 +19,7 @@ class Trip(models.Model):
         ('Sale Trip', 'Sale Trip'),
     ])
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
-    co_driver = models.ForeignKey(CoDriver, on_delete=models.CASCADE)
+    co_driver = models.ForeignKey(CoDriver, on_delete=models.CASCADE, null=True, blank=True)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
     from_location = models.CharField(max_length=100)
     stops = models.CharField(max_length=200, null=True, blank=True)
@@ -51,7 +51,7 @@ class LoadTripProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     total_weight = models.DecimalField(max_digits=10, decimal_places=2)
-
+    created_at = models.DateTimeField(default=timezone.now)
     def __str__(self):
         return f"{self.quantity} x {self.product} for {self.load_trip}"
     
@@ -79,12 +79,12 @@ class Fuel(models.Model):
 class Garage(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
     issue_description = models.TextField()
+    garage_expense = models.CharField(max_length=100, null=True)
     checked_in_at = models.DateTimeField(default=timezone.now)
     checked_out_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Garage record for Vehicle ID: {self.vehicle.id}"
-    
     
     
 class MaintenanceSchedule(models.Model):
@@ -101,10 +101,7 @@ class MaintenanceSchedule(models.Model):
     def __str__(self):
         return f"Maintenance Schedule for {self.vehicle.vehicle_regno}"
 
-
-
-    
-    
+# Bike Parking 
 class Bike(models.Model):
     name = models.CharField(max_length=100)
     expiry_date = models.DateField()
