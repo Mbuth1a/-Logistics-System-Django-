@@ -43,17 +43,13 @@ urlpatterns = [
     path('load_trip/', views.load_trip, name='load_trip'),
     path('api/trip_products/<int:trip_id>/products/', views.trip_products, name='trip_products'),
     path('trips/<int:trip_id>/load_trip_products/', views.load_trip_products, name='load_trip_products'),
-    
-    
+     
     path('api/trips/', views.get_trips, name='get_trips'),
     path('api/trip-data/', views.get_trip_data, name='trip_data'),
     path('end-trip/<int:trip_id>/', views.end_trip, name='end_trip'),
     path('edit-trip/<int:trip_id>/', views.edit_trip, name='edit_trip'),
     path('delete-trip/<int:trip_id>/', views.delete_trip, name='delete_trip'),
-    
 
-    
-    
     # Expenses
     path('expenses/', views.expenses, name='expenses'),
     path('api/trips/', views.TripListView.as_view(), name='trip-list'),  # Corrected URL for TripListView

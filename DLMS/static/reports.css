@@ -110,3 +110,32 @@ h1 {
     padding: 10px; /* Adjust padding for smaller screens */
   }
 }
+
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  position: fixed;
+  background-color: #343a40;
+  color: white;
+  padding: 20px;
+}
+
+.container {
+  margin-left: 270px;
+}
+
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  display: block;
+  margin-top: 20px;
+}
+
+.btn-link {
+  color: white;
+  text-decoration: none;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}

@@ -249,8 +249,8 @@ def get_trips(request):
             'time': trip.time.isoformat(),
             'day': trip.day,
             'description': trip.description,
-            'driver': trip.driver.full_name,  # Assuming Driver model has a 'name' field# Assuming Driver model has a 'name' field
-            'co_driver': trip.co_driver.co_driver_name,  # Assuming CoDriver model has a 'name' field
+            'driver': trip.driver.full_name,  # Assuming Driver model has a 'full_name' field
+            'co_driver': trip.co_driver.co_driver_name if trip.co_driver else None,  # Handle None case
             'vehicle': str(trip.vehicle),  # Using the __str__ representation of Vehicle
             'from_location': trip.from_location,
             'stops': trip.stops,
