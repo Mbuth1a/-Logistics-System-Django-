@@ -2,18 +2,14 @@ services:
   - type: web
     name: danco-logistics
     env: python
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn DANCO_Logistics.wsgi --log-file - --workers 2 --timeout 120
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
-      - key: DATABASE_URL
-        value: "sqlite:///db.sqlite3"
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
         value: "django-insecure-oyrjngo%f0a^1bm#%0-1n+4mshlwx39oe3ba0xmsebk^50#9n6"
-      - key: DISABLE_COLLECTSTATIC
-        value: "1"
     autoDeploy: true
     pullRequestPreviewsEnabled: true
