@@ -2,16 +2,11 @@ services:
   - type: web
     name: danco-logistics
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python manage.py runserver 0.0.0.0:$PORT"
+    buildCommand: "pip install --no-cache-dir -r requirements.txt"
+    startCommand: "python manage.py migrate --run-syncdb; python manage.py runserver 0.0.0.0:$PORT"
     envVars:
-      - key: PYTHON_VERSION
-        value: "3.11.9"
       - key: DEBUG
-        value: "False"
-      - key: SECRET_KEY
-        value: "django-insecure-oyrjngo%f0a^1bm#%0-1n+4mshlwx39oe3ba0xmsebk^50#9n6"
+        value: "True"
       - key: DISABLE_COLLECTSTATIC
         value: "1"
     autoDeploy: true
-    pullRequestPreviewsEnabled: true
