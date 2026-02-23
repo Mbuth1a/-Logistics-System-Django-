@@ -68,6 +68,7 @@ WSGI_APPLICATION = 'DANCO_Logistics.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# Default SQLite configuration for local development
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -76,13 +77,9 @@ DATABASES = {
 }
 
 # Update with Heroku/Render database config if DATABASE_URL is present
-try:
+if os.environ.get('DATABASE_URL'):
     import dj_database_url
-    if os.environ.get('DATABASE_URL'):
-        prod_db = dj_database_url.config(conn_max_age=500)
-        DATABASES['default'].update(prod_db)
-except ImportError:
-    pass
+    DATABASES['default'] = dj_database_url.parse(os.environ.get('DATABASE_URL'), conn_max_age=600)
 
 
 # Password validation
